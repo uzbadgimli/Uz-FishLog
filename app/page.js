@@ -2,23 +2,31 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import styles from './FishLog.module.css'
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('catches')
+  const [activeTab, setActiveTab] = useState('home')
   const [catches, setCatches] = useState([])
+  const [weather, setWeather] = useState(null)
+  const [loadingWeather, setLoadingWeather] = useState(true)
+  
+  // Hava & Deniz tab için
+  const [selectedLocation, setSelectedLocation] = useState(null)
+  const [weatherData, setWeatherData] = useState(null)
+  
+  // Form states
   const [species, setSpecies] = useState('')
   const [lengthCm, setLengthCm] = useState('')
   const [weightGr, setWeightGr] = useState('')
   const [location, setLocation] = useState('')
   const [notes, setNotes] = useState('')
-  const [weather, setWeather] = useState(null)
-  const [loadingWeather, setLoadingWeather] = useState(true)
+  const [huntDate, setHuntDate] = useState(new Date().toISOString().split('T')[0])
+  const [huntTime, setHuntTime] = useState(new Date().toTimeString().slice(0, 5))
 
-  // Hava durumu çek (İstanbul için - 41.0082, 28.9784)
   async function fetchWeather() {
     try {
       const response = await fetch(
-        'https://api.open-meteo.com/v1/forecast?latitude=41.0082&longitude=28.9784&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,weather_code,wind_speed_10m,wind_direction_10m&hourly=temperature_2m,precipitation_probability,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&timezone=Europe%2FIstanbul&forecast_days=3'
+        'https://api.open-meteo.com/v1/forecast?latitude=41.0082&longitude=28.9784&current=temperature_2m,wind_speed_10m,wind_direction_10m,weather_code,relative_humidity_2m,pressure_msl&marine=wave_height&timezone=Europe%2FIstanbul'
       )
       const data = await response.json()
       setWeather(data)
@@ -26,6 +34,18 @@ export default function Home() {
     } catch (error) {
       console.error('Hava durumu hatası:', error)
       setLoadingWeather(false)
+    }
+  }
+
+  async function fetchWeatherForLocation(lat, lon) {
+    try {
+      const response = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,wind_direction_10m,weather_code,relative_humidity_2m,pressure_msl&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,wind_speed_10m_max&timezone=Europe%2FIstanbul&forecast_days=7`
+      )
+      const data = await response.json()
+      setWeatherData(data)
+    } catch (error) {
+      console.error('Lokasyon hava durumu hatası:', error)
     }
   }
 
@@ -46,6 +66,8 @@ export default function Home() {
 
   async function addCatch(e) {
     e.preventDefault()
+    
+    const huntDateTime = `${huntDate}T${huntTime}:00`
 
     const { error } = await supabase
       .from('catches')
@@ -55,7 +77,8 @@ export default function Home() {
           length_cm: parseInt(lengthCm),
           weight_gr: weightGr ? parseInt(weightGr) : null,
           location: location,
-          notes: notes || null
+          notes: notes || null,
+          hunt_date: huntDateTime
         }
       ])
 
@@ -68,447 +91,761 @@ export default function Home() {
       setWeightGr('')
       setLocation('')
       setNotes('')
+      setHuntDate(new Date().toISOString().split('T')[0])
+      setHuntTime(new Date().toTimeString().slice(0, 5))
       fetchCatches()
+      setActiveTab('home')
     }
   }
 
-  // Hava durumu ikonları
   function getWeatherIcon(code) {
     if (code === 0) return '☀️'
     if (code <= 3) return '⛅'
     if (code <= 48) return '🌫️'
     if (code <= 67) return '🌧️'
     if (code <= 77) return '🌨️'
-    if (code <= 82) return '🌧️'
-    if (code <= 86) return '🌨️'
-    if (code <= 99) return '⛈️'
-    return '🌤️'
+    return '⛈️'
   }
 
-  function getWeatherText(code) {
-    if (code === 0) return 'Açık'
-    if (code <= 3) return 'Parçalı Bulutlu'
-    if (code <= 48) return 'Sisli'
-    if (code <= 67) return 'Yağmurlu'
-    if (code <= 77) return 'Karlı'
-    if (code <= 82) return 'Sağanak'
-    if (code <= 86) return 'Kar Yağışı'
-    if (code <= 99) return 'Fırtınalı'
-    return 'Değişken'
-  }
-
-  // Rüzgar yönü
   function getWindDirection(degrees) {
-    const directions = ['K', 'KD', 'D', 'GD', 'G', 'GB', 'B', 'KB']
+    const directions = [
+      { name: 'K', arrow: '↑' },
+      { name: 'KD', arrow: '↗' },
+      { name: 'D', arrow: '→' },
+      { name: 'GD', arrow: '↘' },
+      { name: 'G', arrow: '↓' },
+      { name: 'GB', arrow: '↙' },
+      { name: 'B', arrow: '←' },
+      { name: 'KB', arrow: '↖' }
+    ]
     const index = Math.round(degrees / 45) % 8
-    return directions[index]
+    return `${directions[index].arrow} ${directions[index].name}`
   }
+
+  // Hava durumuna göre balık önerisi
+  function getFishSuggestion(temp, windSpeed) {
+    if (temp < 10) {
+      if (windSpeed < 10) {
+        return {
+          fish: "Levrek, Mezgit aktif. Sakin hava, derin sulara git.",
+          bait: "11-14cm minnow, silikon balık (kırmızı/turuncu), canlı çupra"
+        }
+      }
+      return {
+        fish: "Soğuk ve rüzgarlı. Levrek sahile yaklaşabilir.",
+        bait: "Ağır jig head (14-21gr), derin çalışan minnow, silikon"
+      }
+    }
+    if (temp >= 10 && temp < 18) {
+      if (windSpeed < 15) {
+        return {
+          fish: "İdeal! Levrek, Çupra, Lüfer aktif. Sabah-akşam saatleri mükemmel.",
+          bait: "11-14cm minnow, stick bait, popper, silikon balık, canlı kolyoz"
+        }
+      }
+      return {
+        fish: "Rüzgarlı ama üretken. Levrek kıyılarda, Lüfer sürü halinde.",
+        bait: "Yüzey poppers, 9-11cm minnow, silikon shad, metal jig"
+      }
+    }
+    if (temp >= 18) {
+      if (windSpeed < 10) {
+        return {
+          fish: "Sıcak ve sakin. Çupra, İstavrit, Kolyoz aktif. Gün batımını bekle.",
+          bait: "Küçük minnow (7-9cm), jig, sabiki, canlı karides"
+        }
+      }
+      return {
+        fish: "Sıcak ve rüzgarlı. Yüzey balıkları (Lüfer, İstavrit) aktif.",
+        bait: "Popper, stick bait, metal pilker, hızlı minnow"
+      }
+    }
+    return {
+      fish: "Levrek, Çupra, Lüfer aktif olabilir.",
+      bait: "11-14cm minnow, silikon balık, popper"
+    }
+  }
+
+  function getMoonPhase() {
+    const today = new Date()
+    let year = today.getFullYear()
+    let month = today.getMonth() + 1
+    const day = today.getDate()
+    
+    let c, e, jd, b
+
+    if (month < 3) {
+      year--
+      month += 12
+    }
+
+    ++month
+    c = 365.25 * year
+    e = 30.6 * month
+    jd = c + e + day - 694039.09
+    jd /= 29.5305882
+    b = parseInt(jd)
+    jd -= b
+    b = Math.round(jd * 8)
+
+    if (b >= 8) b = 0
+
+    const phases = ['🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘']
+    const names = ['Yeni Ay', 'Hilal', 'İlk Dördün', 'Şişkin', 'Dolunay', 'Şişkin', 'Son Dördün', 'Hilal']
+    
+    return { icon: phases[b], name: names[b] }
+  }
+
+  const moonPhase = getMoonPhase()
+  
+  // Bugünkü avları hesapla
+  const today = new Date().toISOString().split('T')[0]
+  const todaysCatches = catches.filter(c => {
+    if (!c.hunt_date) return false
+    const catchDate = new Date(c.hunt_date).toISOString().split('T')[0]
+    return catchDate === today
+  })
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 pb-24">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-sm">
-        <div className="px-4 py-4">
-          <h1 className="text-2xl font-bold text-gray-800 text-center">
-            {activeTab === 'catches' && '🎣 Avlarım'}
-            {activeTab === 'stats' && '📊 İstatistikler'}
-            {activeTab === 'profile' && '👤 Profil'}
-          </h1>
+    <main className={styles.container}>
+      {/* Top Bar */}
+      <div className={styles.topBar}>
+        <div className={styles.topBarContent}>
+          <div className={styles.logo}>
+            <div className={styles.logoIcon}>🎣</div>
+            <div className={styles.logoText}>
+              <h1>UZ FishLog</h1>
+              <p>Profesyonel Av Takip Sistemi</p>
+            </div>
+          </div>
+          <div className={styles.quickInfo}>
+            {weather && (
+              <div className={styles.weatherMini}>
+                <div>{Math.round(weather.current.temperature_2m)}°C</div>
+                <div>💨 {Math.round(weather.current.wind_speed_10m)} km/s</div>
+              </div>
+            )}
+            <div className={styles.moonIcon}>{moonPhase.icon}</div>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className={styles.tabNav}>
+          <div className={styles.tabNavContent}>
+            <button
+              onClick={() => setActiveTab('home')}
+              className={`${styles.tab} ${activeTab === 'home' ? styles.tabActive : ''}`}
+            >
+              {activeTab === 'home' && <div className={styles.tabIndicator}></div>}
+              <span className={styles.tabIcon}>🏠</span>
+              <span className={styles.tabLabel}>Ana Sayfa</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('catches')}
+              className={`${styles.tab} ${activeTab === 'catches' ? styles.tabActive : ''}`}
+            >
+              {activeTab === 'catches' && <div className={styles.tabIndicator}></div>}
+              <span className={styles.tabIcon}>🎣</span>
+              <span className={styles.tabLabel}>Avlarım</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('weather')}
+              className={`${styles.tab} ${activeTab === 'weather' ? styles.tabActive : ''}`}
+            >
+              {activeTab === 'weather' && <div className={styles.tabIndicator}></div>}
+              <span className={styles.tabIcon}>🌊</span>
+              <span className={styles.tabLabel}>Hava</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('lunar')}
+              className={`${styles.tab} ${activeTab === 'lunar' ? styles.tabActive : ''}`}
+            >
+              {activeTab === 'lunar' && <div className={styles.tabIndicator}></div>}
+              <span className={styles.tabIcon}>🌙</span>
+              <span className={styles.tabLabel}>Aktivite</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('stats')}
+              className={`${styles.tab} ${activeTab === 'stats' ? styles.tabActive : ''}`}
+            >
+              {activeTab === 'stats' && <div className={styles.tabIndicator}></div>}
+              <span className={styles.tabIcon}>📊</span>
+              <span className={styles.tabLabel}>Analiz</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 pb-6 pt-4">
-        {/* Avlarım Tab */}
-        {activeTab === 'catches' && (
-          <>
-            {/* Hava Durumu Widget */}
-            {!loadingWeather && weather && (
-              <div className="mb-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg overflow-hidden">
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h3 className="text-white font-bold text-lg mb-1">İstanbul - Marmara</h3>
-                      <p className="text-blue-100 text-sm">Şu anki hava durumu</p>
+      {/* Content */}
+      <div className={styles.content}>
+        {/* Ana Sayfa */}
+        {activeTab === 'home' && (
+          <div>
+            <div className={styles.pageTitle}>
+              <h2>Hoş Geldin!</h2>
+              <p>Bugün nasıl bir av günü olacak?</p>
+            </div>
+
+            {/* Bugünkü vs Toplam */}
+            <div className={styles.statsContainer}>
+              <div className={styles.todayCard}>
+                <h3>📅 Bugün</h3>
+                <div className="number">{todaysCatches.length}</div>
+                <div className="label">Av Tutuldu</div>
+              </div>
+              <div className={styles.totalCard}>
+                <h3>🎣 Toplam</h3>
+                <div className="number">{catches.length}</div>
+                <div className="label">Tüm Avlar</div>
+              </div>
+            </div>
+
+            {/* Hava Durumu */}
+            {weather && (
+              <div className={styles.weatherCard}>
+                <div className={styles.weatherCardHeader}>
+                  <h3>🌊 İstanbul - Marmara</h3>
+                  <div className="weatherIcon">{getWeatherIcon(weather.current.weather_code)}</div>
+                </div>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr 1fr',
+                  gap: '0.75rem'
+                }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1E40AF' }}>
+                      {Math.round(weather.current.temperature_2m)}°C
                     </div>
-                    <div className="text-5xl">
-                      {getWeatherIcon(weather.current.weather_code)}
-                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Sıcaklık</div>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-3 mb-3">
-                    <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
-                      <div className="text-blue-100 text-xs font-semibold mb-1">Sıcaklık</div>
-                      <div className="text-white text-2xl font-bold">{Math.round(weather.current.temperature_2m)}°C</div>
-                      <div className="text-blue-100 text-xs mt-1">Hissedilen: {Math.round(weather.current.apparent_temperature)}°C</div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1E40AF' }}>
+                      {Math.round(weather.current.wind_speed_10m)}
                     </div>
-
-                    <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
-                      <div className="text-blue-100 text-xs font-semibold mb-1">Rüzgar</div>
-                      <div className="text-white text-2xl font-bold">{Math.round(weather.current.wind_speed_10m)} km/s</div>
-                      <div className="text-blue-100 text-xs mt-1">Yön: {getWindDirection(weather.current.wind_direction_10m)}</div>
-                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Rüzgar (km/s)</div>
                   </div>
-
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 text-center">
-                      <div className="text-blue-100 text-xs mb-1">Nem</div>
-                      <div className="text-white font-bold">{Math.round(weather.current.relative_humidity_2m)}%</div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1E40AF' }}>
+                      {getWindDirection(weather.current.wind_direction_10m)}
                     </div>
-
-                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 text-center">
-                      <div className="text-blue-100 text-xs mb-1">Yağış</div>
-                      <div className="text-white font-bold">{weather.current.precipitation} mm</div>
-                    </div>
-
-                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 text-center">
-                      <div className="text-blue-100 text-xs mb-1">Durum</div>
-                      <div className="text-white font-bold text-xs">{getWeatherText(weather.current.weather_code)}</div>
-                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Yön</div>
                   </div>
-
-                  {/* 3 Günlük Tahmin */}
-                  <div className="mt-3 pt-3 border-t border-white/20">
-                    <div className="text-blue-100 text-xs font-semibold mb-2">3 Günlük Tahmin</div>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[0, 1, 2].map((day) => (
-                        <div key={day} className="bg-white/10 backdrop-blur-sm rounded-lg p-2 text-center">
-                          <div className="text-blue-100 text-xs mb-1">
-                            {day === 0 ? 'Bugün' : day === 1 ? 'Yarın' : '2 Gün'}
-                          </div>
-                          <div className="text-2xl mb-1">
-                            {getWeatherIcon(weather.daily.weather_code[day])}
-                          </div>
-                          <div className="text-white font-bold text-sm">
-                            {Math.round(weather.daily.temperature_2m_max[day])}° / {Math.round(weather.daily.temperature_2m_min[day])}°
-                          </div>
-                          <div className="text-blue-100 text-xs mt-1">
-                            💨 {Math.round(weather.daily.wind_speed_10m_max[day])} km/s
-                          </div>
-                        </div>
-                      ))}
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1E40AF' }}>
+                      {weather.marine?.wave_height?.[0] 
+                        ? `${Math.round(weather.marine.wave_height[0] * 100)}cm` 
+                        : '0cm'}
                     </div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Dalga</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1E40AF' }}>
+                      {Math.round(weather.current.relative_humidity_2m)}%
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Nem</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1E40AF' }}>
+                      {Math.round(weather.current.pressure_msl)}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Basınç</div>
+                  </div>
+                </div>
+                <div className={styles.fishSuggestion}>
+                  <h4>🐟 Bu Havada Hangi Balık?</h4>
+                  <p style={{ marginBottom: '0.75rem' }}>
+                    {getFishSuggestion(weather.current.temperature_2m, weather.current.wind_speed_10m).fish}
+                  </p>
+                  <div style={{
+                    paddingTop: '0.75rem',
+                    borderTop: '1px solid rgba(30, 64, 175, 0.2)'
+                  }}>
+                    <strong style={{ fontSize: '0.875rem' }}>🎣 Tavsiye Yem:</strong>
+                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem' }}>
+                      {getFishSuggestion(weather.current.temperature_2m, weather.current.wind_speed_10m).bait}
+                    </p>
                   </div>
                 </div>
               </div>
             )}
 
-            <form onSubmit={addCatch} className="mb-6 bg-white rounded-2xl shadow-lg overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-4">
-                <h2 className="text-xl font-bold text-white">📝 Yeni Av Ekle</h2>
-              </div>
+            {/* Yeni Av Ekle */}
+            <button 
+              onClick={() => setActiveTab('catches')}
+              className={styles.addButton}
+            >
+              ➕ Yeni Av Ekle
+            </button>
 
-              <div className="p-4 space-y-3">
+            {/* Son Avlar */}
+            {catches.length > 0 && (
+              <div className={styles.catchesCard}>
+                <div className={styles.catchesHeader}>
+                  <h3>🎣 Son Avlar</h3>
+                  <button 
+                    onClick={() => setActiveTab('catches')}
+                    className={styles.viewAllButton}
+                  >
+                    Tümünü Gör →
+                  </button>
+                </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">🐟 Balık Türü *</label>
+                  {catches.slice(0, 3).map((c) => (
+                    <div 
+                      key={c.id} 
+                      style={{
+                        padding: '1rem',
+                        background: '#F8FAFC',
+                        borderRadius: '0.75rem',
+                        marginBottom: '0.75rem',
+                        borderLeft: '4px solid #FB923C'
+                      }}
+                    >
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'baseline',
+                        marginBottom: '0.5rem'
+                      }}>
+                        <span style={{
+                          fontWeight: 'bold',
+                          color: '#1E40AF',
+                          fontSize: '1.125rem',
+                          textTransform: 'uppercase'
+                        }}>
+                          {c.species}
+                        </span>
+                        <span style={{
+                          fontWeight: 'bold',
+                          color: '#FB923C',
+                          fontSize: '1rem',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {c.length_cm} CM {c.weight_gr && `${c.weight_gr} GRAM`}
+                        </span>
+                      </div>
+                      
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'baseline'
+                      }}>
+                        <span style={{
+                          color: '#1E40AF',
+                          fontSize: '1.125rem', fontWeight: 'bold'
+                        }}>
+                          {c.location}
+                        </span>
+                        <span style={{
+                          color: '#64748B',
+                          fontSize: '1rem', fontWeight: '600',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {c.hunt_date 
+                            ? new Date(c.hunt_date).toLocaleString('tr-TR', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })
+                            : new Date(c.created_at).toLocaleDateString('tr-TR')
+                          }
+                        </span>
+                      </div>
+                      
+                      {c.notes && (
+                        <div style={{
+                          marginTop: '0.75rem',
+                          paddingTop: '0.75rem',
+                          borderTop: '1px solid #E2E8F0',
+                          fontSize: '1rem', fontWeight: '600',
+                          color: '#475569',
+                          textTransform: 'uppercase',
+                          fontWeight: '600'
+                        }}>
+                          {c.notes}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Avlarım Tab */}
+        {activeTab === 'catches' && (
+          <div>
+            {/* Yeni Av Formu */}
+            <div className={styles.formCard}>
+              <h3>➕ Yeni Av Ekle</h3>
+              <form onSubmit={addCatch}>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>🐟 Balık Türü *</label>
                   <input
                     type="text"
                     placeholder="Levrek, Çupra, Lüfer..."
                     value={species}
                     onChange={(e) => setSpecies(e.target.value)}
-                    className="w-full px-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-gray-800 text-lg transition-all"
+                    className={styles.formInput}
                     required
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">📏 Boy (cm) *</label>
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>📏 Boy (cm) *</label>
                     <input
                       type="number"
-                      inputMode="numeric"
                       placeholder="45"
                       value={lengthCm}
                       onChange={(e) => setLengthCm(e.target.value)}
-                      className="w-full px-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-gray-800 text-lg transition-all"
+                      className={styles.formInput}
                       required
                     />
                   </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">⚖️ Kilo (gr)</label>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>⚖️ Ağırlık (gr)</label>
                     <input
                       type="number"
-                      inputMode="numeric"
                       placeholder="1200"
                       value={weightGr}
                       onChange={(e) => setWeightGr(e.target.value)}
-                      className="w-full px-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-gray-800 text-lg transition-all"
+                      className={styles.formInput}
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">📍 Tutulan Yer *</label>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>📍 Tutulan Yer *</label>
                   <input
                     type="text"
                     placeholder="Kumbağ, Şile, Boğaz..."
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full px-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-gray-800 text-lg transition-all"
+                    className={styles.formInput}
                     required
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">📝 Notlar</label>
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>📅 Tarih *</label>
+                    <input
+                      type="date"
+                      value={huntDate}
+                      onChange={(e) => setHuntDate(e.target.value)}
+                      className={styles.formInput}
+                      required
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>🕐 Saat *</label>
+                    <input
+                      type="time"
+                      value={huntTime}
+                      onChange={(e) => setHuntTime(e.target.value)}
+                      className={styles.formInput}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>📝 Notlar</label>
                   <textarea
-                    placeholder="Olta takımı, yem, hava durumu..."
+                    placeholder="Olta takımı, yem, hava durumu, teknik..."
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="w-full px-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-gray-800 text-lg h-24 resize-none transition-all"
+                    className={styles.formInput}
+                    rows="3"
                   />
                 </div>
 
-                <button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold text-lg py-5 rounded-xl hover:from-blue-700 hover:to-blue-600 active:scale-[0.98] transition-all shadow-lg shadow-blue-500/30"
-                >
-                  💾 Kaydet
+                <button type="submit" className={styles.submitButton}>
+                  💾 Av Kaydını Ekle
                 </button>
-              </div>
-            </form>
+              </form>
+            </div>
 
-            <div className="pb-safe">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-800">📋 Avlarım</h2>
-                <span className="text-sm text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">
-                  {catches.length} av
-                </span>
-              </div>
-
-              {catches.length === 0 ? (
-                <div className="text-center p-12 bg-white rounded-2xl shadow-lg">
-                  <div className="text-6xl mb-4">🎣</div>
-                  <p className="text-gray-600 text-base font-semibold">Henüz av kaydı yok</p>
-                  <p className="text-gray-400 text-sm mt-2">Yukarıdaki formu kullanarak<br/>ilk avınızı ekleyin!</p>
+            {/* Tüm Avlar Listesi */}
+            {catches.length > 0 && (
+              <div className={styles.catchesCard}>
+                <div className={styles.catchesHeader}>
+                  <h3>📋 Tüm Avlarım ({catches.length})</h3>
                 </div>
-              ) : (
-                <div className="space-y-3">
+                <div>
                   {catches.map((c) => (
-                    <div key={c.id} className="bg-white border-l-4 border-blue-500 rounded-2xl shadow-md active:scale-[0.99] transition-all overflow-hidden">
-                      <div className="p-4">
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <h3 className="text-xl font-bold text-gray-800">{c.species}</h3>
-                            <span className="text-xs text-gray-500 mt-1 inline-block">
-                              {new Date(c.created_at).toLocaleDateString('tr-TR', {
-                                day: 'numeric',
-                                month: 'short',
-                                year: 'numeric'
-                              })}
-                            </span>
-                          </div>
-                          <div className="bg-blue-50 px-3 py-1 rounded-full">
-                            <span className="text-sm font-bold text-blue-600">#{catches.length - catches.indexOf(c)}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex gap-3 mb-3">
-                          <div className="flex-1 bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-xl">
-                            <div className="text-xs text-gray-600 font-semibold mb-1">📏 Boy</div>
-                            <div className="text-lg font-bold text-blue-600">{c.length_cm} cm</div>
-                          </div>
-                          {c.weight_gr && (
-                            <div className="flex-1 bg-gradient-to-br from-green-50 to-green-100 p-3 rounded-xl">
-                              <div className="text-xs text-gray-600 font-semibold mb-1">⚖️ Kilo</div>
-                              <div className="text-lg font-bold text-green-600">{c.weight_gr} gr</div>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2 text-sm mb-2">
-                          <span className="text-gray-500">📍</span>
-                          <span className="text-gray-700 font-medium">{c.location}</span>
-                        </div>
-
-                        {c.notes && (
-                          <div className="mt-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                            <div className="text-xs text-gray-500 font-semibold mb-1">📝 Notlar</div>
-                            <p className="text-sm text-gray-700 leading-relaxed">{c.notes}</p>
-                          </div>
-                        )}
+                    <div 
+                      key={c.id} 
+                      style={{
+                        padding: '1rem',
+                        background: '#F8FAFC',
+                        borderRadius: '0.75rem',
+                        marginBottom: '0.75rem',
+                        borderLeft: '4px solid #FB923C'
+                      }}
+                    >
+                      {/* İlk satır: Tür ve Ölçüler */}
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'baseline',
+                        marginBottom: '0.5rem'
+                      }}>
+                        <span style={{
+                          fontWeight: 'bold',
+                          color: '#1E40AF',
+                          fontSize: '1.125rem',
+                          textTransform: 'uppercase'
+                        }}>
+                          {c.species}
+                        </span>
+                        <span style={{
+                          fontWeight: 'bold',
+                          color: '#FB923C',
+                          fontSize: '1rem',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {c.length_cm} CM {c.weight_gr && `${c.weight_gr} GRAM`}
+                        </span>
                       </div>
+                      
+                      {/* İkinci satır: Yer ve Tarih */}
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'baseline'
+                      }}>
+                        <span style={{
+                          color: '#1E40AF',
+                          fontSize: '1.125rem', fontWeight: 'bold'
+                        }}>
+                          {c.location}
+                        </span>
+                        <span style={{
+                          color: '#64748B',
+                          fontSize: '1rem', fontWeight: '600',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {c.hunt_date 
+                            ? new Date(c.hunt_date).toLocaleString('tr-TR', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })
+                            : new Date(c.created_at).toLocaleDateString('tr-TR')
+                          }
+                        </span>
+                      </div>
+                      
+                      {/* Not */}
+                      {c.notes && (
+                        <div style={{
+                          marginTop: '0.75rem',
+                          paddingTop: '0.75rem',
+                          borderTop: '1px solid #E2E8F0',
+                          fontSize: '1rem', fontWeight: '600',
+                          color: '#475569',
+                          textTransform: 'uppercase',
+                          fontWeight: '600'
+                        }}>
+                          {c.notes}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
-          </>
-        )}
-
-        {/* İstatistikler Tab */}
-        {activeTab === 'stats' && (
-          <div className="space-y-4">
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">📈 Genel İstatistikler</h2>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl">
-                  <div className="text-sm text-gray-600 font-semibold mb-1">Toplam Av</div>
-                  <div className="text-3xl font-bold text-blue-600">{catches.length}</div>
-                </div>
-
-                <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl">
-                  <div className="text-sm text-gray-600 font-semibold mb-1">En Büyük</div>
-                  <div className="text-3xl font-bold text-green-600">
-                    {catches.length > 0 ? Math.max(...catches.map(c => c.length_cm)) : 0} cm
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl">
-                  <div className="text-sm text-gray-600 font-semibold mb-1">En Ağır</div>
-                  <div className="text-3xl font-bold text-purple-600">
-                    {catches.length > 0 && catches.some(c => c.weight_gr)
-                      ? Math.max(...catches.filter(c => c.weight_gr).map(c => c.weight_gr))
-                      : 0} gr
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-xl">
-                  <div className="text-sm text-gray-600 font-semibold mb-1">Farklı Tür</div>
-                  <div className="text-3xl font-bold text-orange-600">
-                    {catches.length > 0 ? new Set(catches.map(c => c.species)).size : 0}
-                  </div>
-                </div>
               </div>
-            </div>
+            )}
 
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">🐟 Tür Dağılımı</h2>
-              {catches.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">Henüz veri yok</p>
-              ) : (
-                <div className="space-y-3">
-                  {Object.entries(
-                    catches.reduce((acc, c) => {
-                      acc[c.species] = (acc[c.species] || 0) + 1;
-                      return acc;
-                    }, {})
-                  )
-                    .sort((a, b) => b[1] - a[1])
-                    .map(([species, count]) => (
-                      <div key={species} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                        <span className="font-semibold text-gray-800">{species}</span>
-                        <div className="flex items-center gap-2">
-                          <div className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                            {count}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {((count / catches.length) * 100).toFixed(0)}%
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              )}
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">📍 Popüler Lokasyonlar</h2>
-              {catches.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">Henüz veri yok</p>
-              ) : (
-                <div className="space-y-3">
-                  {Object.entries(
-                    catches.reduce((acc, c) => {
-                      acc[c.location] = (acc[c.location] || 0) + 1;
-                      return acc;
-                    }, {})
-                  )
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 5)
-                    .map(([location, count]) => (
-                      <div key={location} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                        <span className="font-semibold text-gray-800">{location}</span>
-                        <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                          {count} av
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              )}
-            </div>
+            {catches.length === 0 && (
+              <div className={styles.emptyState}>
+                <div className="icon">🎣</div>
+                <h3>Henüz Av Kaydı Yok</h3>
+                <p>Yukarıdaki formu kullanarak ilk avını ekle!</p>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Profil Tab */}
-        {activeTab === 'profile' && (
-          <div className="space-y-4">
-            <div className="bg-white rounded-2xl shadow-lg p-6 text-center">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl">
-                🎣
-              </div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">Balıkçı Profili</h2>
-              <p className="text-gray-600">UZ FishLog Kullanıcısı</p>
+        {/* Hava & Deniz Tab */}
+        {activeTab === 'weather' && (
+          <div>
+            <div className={styles.pageTitle}>
+              <h2>🌊 Hava & Deniz Durumu</h2>
+              <p>Favori yerlerden seç</p>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">⚙️ Ayarlar</h3>
-              <div className="space-y-3">
-                <button className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                  <span className="font-semibold text-gray-800">🔔 Bildirimler</span>
-                  <span className="text-gray-400">›</span>
+            {/* Favori Lokasyonlar */}
+            <div style={{
+              marginBottom: '1rem',
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '0.5rem'
+            }}>
+              {[
+                { name: 'Kumbağ', lat: 40.9833, lon: 27.9667 },
+                { name: 'Şile', lat: 41.1764, lon: 29.6094 },
+                { name: 'Hereke', lat: 40.7833, lon: 29.6333 },
+                { name: 'İzmit Körfezi', lat: 40.7667, lon: 29.9167 }
+              ].map((loc) => (
+                <button
+                  key={loc.name}
+                  onClick={() => {
+                    setSelectedLocation(loc)
+                    fetchWeatherForLocation(loc.lat, loc.lon)
+                  }}
+                  style={{
+                    padding: '0.75rem',
+                    background: selectedLocation?.name === loc.name ? '#1E40AF' : 'white',
+                    color: selectedLocation?.name === loc.name ? 'white' : '#1E40AF',
+                    border: '2px solid #1E40AF',
+                    borderRadius: '0.75rem',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  📍 {loc.name}
                 </button>
-                <button className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                  <span className="font-semibold text-gray-800">🌍 Konum İzinleri</span>
-                  <span className="text-gray-400">›</span>
-                </button>
-                <button className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                  <span className="font-semibold text-gray-800">📤 Verileri Dışa Aktar</span>
-                  <span className="text-gray-400">›</span>
-                </button>
-              </div>
+              ))}
             </div>
 
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">ℹ️ Hakkında</h3>
-              <div className="space-y-2 text-sm text-gray-600">
-                <p><strong>Versiyon:</strong> 1.1.0</p>
-                <p><strong>Geliştirici:</strong> UZ FishLog Team</p>
-                <p className="pt-3 text-xs text-gray-500">
-                  Tüm balık avı kayıtlarınız Supabase'de güvenle saklanmaktadır.
+            {/* Detaylı Hava Durumu */}
+            {selectedLocation && weatherData && (
+              <div>
+                <div style={{
+                  background: 'linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%)',
+                  borderRadius: '1rem',
+                  padding: '1.5rem',
+                  color: 'white',
+                  marginBottom: '1rem'
+                }}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>
+                    📍 {selectedLocation.name} - Şu An
+                  </h3>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr 1fr',
+                    gap: '1rem'
+                  }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
+                        {Math.round(weatherData.current.temperature_2m)}°
+                      </div>
+                      <div style={{ fontSize: '0.75rem', opacity: 0.9 }}>Sıcaklık</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
+                        {Math.round(weatherData.current.wind_speed_10m)}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', opacity: 0.9 }}>Rüzgar</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
+                        {getWindDirection(weatherData.current.wind_direction_10m)}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', opacity: 0.9 }}>Yön</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{
+                  background: 'white',
+                  borderRadius: '1rem',
+                  padding: '1rem',
+                  border: '1px solid #E2E8F0',
+                  marginBottom: '1rem'
+                }}>
+                  <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1E40AF', marginBottom: '1rem' }}>
+                    📅 7 Günlük Tahmin
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {weatherData.daily && weatherData.daily.time.slice(0, 7).map((date, i) => (
+                      <div key={date} style={{
+                        display: 'grid',
+                        gridTemplateColumns: '2fr 1fr 2fr 1fr',
+                        alignItems: 'center',
+                        padding: '0.75rem',
+                        background: '#F8FAFC',
+                        borderRadius: '0.5rem',
+                        gap: '0.5rem'
+                      }}>
+                        <div style={{ fontWeight: '600', color: '#1E40AF', fontSize: '0.875rem' }}>
+                          {new Date(date).toLocaleDateString('tr-TR', { weekday: 'short', day: 'numeric', month: 'short' })}
+                        </div>
+                        <div style={{ fontSize: '1.5rem', textAlign: 'center' }}>
+                          {getWeatherIcon(weatherData.daily.weather_code[i])}
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-around', fontWeight: 'bold', fontSize: '0.875rem' }}>
+                          <span style={{ color: '#FB923C' }}>{Math.round(weatherData.daily.temperature_2m_max[i])}°</span>
+                          <span style={{ color: '#64748B' }}>{Math.round(weatherData.daily.temperature_2m_min[i])}°</span>
+                        </div>
+                        <div style={{ textAlign: 'right', fontSize: '0.75rem', color: '#64748B' }}>
+                          💨 {Math.round(weatherData.daily.wind_speed_10m_max[i])}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {weatherData.daily && (
+                  <div style={{ background: 'white', borderRadius: '1rem', padding: '1rem', border: '1px solid #E2E8F0' }}>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1E40AF', marginBottom: '1rem' }}>
+                      ☀️ Gün Doğumu & Batımı
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div style={{ textAlign: 'center', padding: '1rem', background: '#FEF3C7', borderRadius: '0.75rem' }}>
+                        <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🌅</div>
+                        <div style={{ fontWeight: 'bold', color: '#92400E' }}>
+                          {new Date(weatherData.daily.sunrise[0]).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: '#92400E' }}>Doğuş</div>
+                      </div>
+                      <div style={{ textAlign: 'center', padding: '1rem', background: '#DBEAFE', borderRadius: '0.75rem' }}>
+                        <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🌇</div>
+                        <div style={{ fontWeight: 'bold', color: '#1E3A8A' }}>
+                          {new Date(weatherData.daily.sunset[0]).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: '#1E3A8A' }}>Batış</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!selectedLocation && (
+              <div style={{ textAlign: 'center', padding: '3rem 1rem', background: 'white', borderRadius: '1rem', border: '1px solid #E2E8F0' }}>
+                <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🗺️</div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1E40AF', marginBottom: '0.5rem' }}>
+                  Bir Lokasyon Seç
+                </h3>
+                <p style={{ color: '#64748B' }}>
+                  Yukarıdaki butonlardan favori yerini seç
                 </p>
               </div>
-            </div>
+            )}
           </div>
         )}
-      </div>
 
-      {/* Bottom Tab Bar - Artık padding var */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-lg border-t border-gray-200 safe-area-inset-bottom">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="flex items-center justify-around py-3">
-            <button
-              onClick={() => setActiveTab('catches')}
-              className={`flex flex-col items-center gap-1 py-2 px-6 rounded-xl transition-all ${
-                activeTab === 'catches' ? 'text-blue-600 bg-blue-50' : 'text-gray-500'
-              }`}
-            >
-              <span className="text-2xl">🎣</span>
-              <span className="text-xs font-semibold">Avlarım</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('stats')}
-              className={`flex flex-col items-center gap-1 py-2 px-6 rounded-xl transition-all ${
-                activeTab === 'stats' ? 'text-blue-600 bg-blue-50' : 'text-gray-500'
-              }`}
-            >
-              <span className="text-2xl">📊</span>
-              <span className="text-xs font-semibold">İstatistik</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('profile')}
-              className={`flex flex-col items-center gap-1 py-2 px-6 rounded-xl transition-all ${
-                activeTab === 'profile' ? 'text-blue-600 bg-blue-50' : 'text-gray-500'
-              }`}
-            >
-              <span className="text-2xl">👤</span>
-              <span className="text-xs font-semibold">Profil</span>
-            </button>
+        {/* Diğer Tablar */}
+        {activeTab !== 'home' && activeTab !== 'catches' && activeTab !== 'weather' && (
+          <div className={styles.emptyState}>
+            <div className="icon">🚧</div>
+            <h3>Geliştirme Aşamasında</h3>
+            <p>Bu sekme hazırlanıyor...</p>
           </div>
-        </div>
+        )}
       </div>
     </main>
   )

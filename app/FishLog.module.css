@@ -1,0 +1,447 @@
+/* CSS Modules - Garantili Stil */
+.container {
+  min-height: 100vh;
+  background: #F8FAFC;
+}
+
+.topBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: #1E3A8A;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.topBarContent {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logoIcon {
+  font-size: 2rem;
+}
+
+.logoText h1 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: white;
+  margin: 0;
+}
+
+.logoText p {
+  font-size: 0.75rem;
+  color: #BFDBFE;
+  margin: 0;
+}
+
+.quickInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.weatherMini {
+  text-align: right;
+}
+
+.weatherMini div:first-child {
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.weatherMini div:last-child {
+  color: #BFDBFE;
+  font-size: 0.75rem;
+}
+
+.moonIcon {
+  font-size: 2rem;
+}
+
+.tabNav {
+  background: #1E40AF;
+  border-top: 1px solid #2563EB;
+}
+
+.tabNavContent {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+  color: #BFDBFE;
+}
+
+.tab:hover {
+  color: #FDBA74;
+}
+
+.tabActive {
+  color: #FDBA74;
+}
+
+.tabIndicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #FB923C;
+  border-radius: 0 0 999px 999px;
+}
+
+.tabIcon {
+  font-size: 1.25rem;
+}
+
+.tabLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.content {
+  padding-top: 8rem;
+  padding-bottom: 2rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.pageTitle {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.pageTitle h2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1E3A8A;
+  margin-bottom: 0.5rem;
+}
+
+.pageTitle p {
+  color: #64748B;
+}
+
+.statsContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.todayCard {
+  background: linear-gradient(135deg, #FB923C 0%, #FDBA74 100%);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  color: white;
+  box-shadow: 0 4px 6px rgba(251, 146, 60, 0.3);
+}
+
+.todayCard h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  opacity: 0.9;
+}
+
+.todayCard .number {
+  font-size: 3rem;
+  font-weight: bold;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.todayCard .label {
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+.totalCard {
+  background: linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  color: white;
+  box-shadow: 0 4px 6px rgba(30, 64, 175, 0.3);
+}
+
+.totalCard h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  opacity: 0.9;
+}
+
+.totalCard .number {
+  font-size: 3rem;
+  font-weight: bold;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.totalCard .label {
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+.weatherCard {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #E2E8F0;
+  margin-bottom: 1rem;
+}
+
+.weatherCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.weatherCardHeader h3 {
+  font-size: 1.125rem;
+  font-weight: bold;
+  color: #1E3A8A;
+  margin: 0;
+}
+
+.weatherCardHeader .weatherIcon {
+  font-size: 2.5rem;
+}
+
+.weatherGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.weatherGridItem {
+  text-align: center;
+}
+
+.weatherGridItem div:first-child {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1E40AF;
+}
+
+.weatherGridItem div:last-child {
+  font-size: 0.75rem;
+  color: #64748B;
+}
+
+.addButton {
+  width: 100%;
+  background: linear-gradient(90deg, #FB923C 0%, #FDBA74 100%);
+  color: white;
+  font-weight: bold;
+  font-size: 1.125rem;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(251, 146, 60, 0.3);
+  margin-bottom: 1rem;
+  transition: all 0.2s;
+}
+
+.addButton:hover {
+  box-shadow: 0 6px 12px rgba(251, 146, 60, 0.4);
+}
+
+.addButton:active {
+  transform: scale(0.98);
+}
+
+.formCard {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #E2E8F0;
+  margin-bottom: 1rem;
+}
+
+.formCard h3 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #1E3A8A;
+  margin-bottom: 1.5rem;
+}
+
+.formGroup {
+  margin-bottom: 1rem;
+}
+
+.formLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1E40AF;
+  margin-bottom: 0.5rem;
+}
+
+.formInput {
+  width: 100%;
+  padding: 0.875rem;
+  font-size: 1rem;
+  border: 2px solid #E2E8F0;
+  border-radius: 0.5rem;
+  background: #F8FAFC;
+  transition: all 0.2s;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: #FB923C;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.1);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.submitButton {
+  width: 100%;
+  background: linear-gradient(90deg, #1E40AF 0%, #1E3A8A 100%);
+  color: white;
+  font-weight: bold;
+  font-size: 1.125rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: none;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: all 0.2s;
+}
+
+.submitButton:hover {
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+}
+
+.submitButton:active {
+  transform: scale(0.98);
+}
+
+.catchesCard {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #E2E8F0;
+}
+
+.catchesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.catchesHeader h3 {
+  font-size: 1.125rem;
+  font-weight: bold;
+  color: #1E3A8A;
+  margin: 0;
+}
+
+.viewAllButton {
+  color: #FB923C;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.catchItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: #F8FAFC;
+  border-radius: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.catchItem:last-child {
+  margin-bottom: 0;
+}
+
+.catchInfo .species {
+  font-weight: bold;
+  color: #1E40AF;
+}
+
+.catchInfo .location {
+  font-size: 0.75rem;
+  color: #64748B;
+}
+
+.catchStats {
+  text-align: right;
+}
+
+.catchStats .size {
+  font-weight: bold;
+  color: #FB923C;
+}
+
+.catchStats .date {
+  font-size: 0.75rem;
+  color: #64748B;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 5rem 1rem;
+}
+
+.emptyState .icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.emptyState h3 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1E3A8A;
+  margin-bottom: 0.5rem;
+}
+
+.emptyState p {
+  color: #64748B;
+}
