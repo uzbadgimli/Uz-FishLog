@@ -11,6 +11,23 @@ export default function Home() {
   const [weightGr, setWeightGr] = useState('')
   const [location, setLocation] = useState('')
   const [notes, setNotes] = useState('')
+  const [weather, setWeather] = useState(null)
+  const [loadingWeather, setLoadingWeather] = useState(true)
+
+  // Hava durumu çek (İstanbul için - 41.0082, 28.9784)
+  async function fetchWeather() {
+    try {
+      const response = await fetch(
+        'https://api.open-meteo.com/v1/forecast?latitude=41.0082&longitude=28.9784&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,weather_code,wind_speed_10m,wind_direction_10m&hourly=temperature_2m,precipitation_probability,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&timezone=Europe%2FIstanbul&forecast_days=3'
+      )
+      const data = await response.json()
+      setWeather(data)
+      setLoadingWeather(false)
+    } catch (error) {
+      console.error('Hava durumu hatası:', error)
+      setLoadingWeather(false)
+    }
+  }
 
   async function fetchCatches() {
     const { data, error } = await supabase
@@ -24,6 +41,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchCatches()
+    fetchWeather()
   }, [])
 
   async function addCatch(e) {
@@ -54,10 +72,42 @@ export default function Home() {
     }
   }
 
+  // Hava durumu ikonları
+  function getWeatherIcon(code) {
+    if (code === 0) return '☀️'
+    if (code <= 3) return '⛅'
+    if (code <= 48) return '🌫️'
+    if (code <= 67) return '🌧️'
+    if (code <= 77) return '🌨️'
+    if (code <= 82) return '🌧️'
+    if (code <= 86) return '🌨️'
+    if (code <= 99) return '⛈️'
+    return '🌤️'
+  }
+
+  function getWeatherText(code) {
+    if (code === 0) return 'Açık'
+    if (code <= 3) return 'Parçalı Bulutlu'
+    if (code <= 48) return 'Sisli'
+    if (code <= 67) return 'Yağmurlu'
+    if (code <= 77) return 'Karlı'
+    if (code <= 82) return 'Sağanak'
+    if (code <= 86) return 'Kar Yağışı'
+    if (code <= 99) return 'Fırtınalı'
+    return 'Değişken'
+  }
+
+  // Rüzgar yönü
+  function getWindDirection(degrees) {
+    const directions = ['K', 'KD', 'D', 'GD', 'G', 'GB', 'B', 'KB']
+    const index = Math.round(degrees / 45) % 8
+    return directions[index]
+  }
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 pb-20">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 pb-24">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-sm">
+      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-sm">
         <div className="px-4 py-4">
           <h1 className="text-2xl font-bold text-gray-800 text-center">
             {activeTab === 'catches' && '🎣 Avlarım'}
@@ -71,6 +121,77 @@ export default function Home() {
         {/* Avlarım Tab */}
         {activeTab === 'catches' && (
           <>
+            {/* Hava Durumu Widget */}
+            {!loadingWeather && weather && (
+              <div className="mb-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg overflow-hidden">
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h3 className="text-white font-bold text-lg mb-1">İstanbul - Marmara</h3>
+                      <p className="text-blue-100 text-sm">Şu anki hava durumu</p>
+                    </div>
+                    <div className="text-5xl">
+                      {getWeatherIcon(weather.current.weather_code)}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
+                      <div className="text-blue-100 text-xs font-semibold mb-1">Sıcaklık</div>
+                      <div className="text-white text-2xl font-bold">{Math.round(weather.current.temperature_2m)}°C</div>
+                      <div className="text-blue-100 text-xs mt-1">Hissedilen: {Math.round(weather.current.apparent_temperature)}°C</div>
+                    </div>
+
+                    <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
+                      <div className="text-blue-100 text-xs font-semibold mb-1">Rüzgar</div>
+                      <div className="text-white text-2xl font-bold">{Math.round(weather.current.wind_speed_10m)} km/s</div>
+                      <div className="text-blue-100 text-xs mt-1">Yön: {getWindDirection(weather.current.wind_direction_10m)}</div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 text-center">
+                      <div className="text-blue-100 text-xs mb-1">Nem</div>
+                      <div className="text-white font-bold">{Math.round(weather.current.relative_humidity_2m)}%</div>
+                    </div>
+
+                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 text-center">
+                      <div className="text-blue-100 text-xs mb-1">Yağış</div>
+                      <div className="text-white font-bold">{weather.current.precipitation} mm</div>
+                    </div>
+
+                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 text-center">
+                      <div className="text-blue-100 text-xs mb-1">Durum</div>
+                      <div className="text-white font-bold text-xs">{getWeatherText(weather.current.weather_code)}</div>
+                    </div>
+                  </div>
+
+                  {/* 3 Günlük Tahmin */}
+                  <div className="mt-3 pt-3 border-t border-white/20">
+                    <div className="text-blue-100 text-xs font-semibold mb-2">3 Günlük Tahmin</div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[0, 1, 2].map((day) => (
+                        <div key={day} className="bg-white/10 backdrop-blur-sm rounded-lg p-2 text-center">
+                          <div className="text-blue-100 text-xs mb-1">
+                            {day === 0 ? 'Bugün' : day === 1 ? 'Yarın' : '2 Gün'}
+                          </div>
+                          <div className="text-2xl mb-1">
+                            {getWeatherIcon(weather.daily.weather_code[day])}
+                          </div>
+                          <div className="text-white font-bold text-sm">
+                            {Math.round(weather.daily.temperature_2m_max[day])}° / {Math.round(weather.daily.temperature_2m_min[day])}°
+                          </div>
+                          <div className="text-blue-100 text-xs mt-1">
+                            💨 {Math.round(weather.daily.wind_speed_10m_max[day])} km/s
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={addCatch} className="mb-6 bg-white rounded-2xl shadow-lg overflow-hidden">
               <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-4">
                 <h2 className="text-xl font-bold text-white">📝 Yeni Av Ekle</h2>
@@ -84,7 +205,7 @@ export default function Home() {
                     placeholder="Levrek, Çupra, Lüfer..."
                     value={species}
                     onChange={(e) => setSpecies(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-gray-800 text-base transition-all"
+                    className="w-full px-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-gray-800 text-lg transition-all"
                     required
                   />
                 </div>
@@ -98,7 +219,7 @@ export default function Home() {
                       placeholder="45"
                       value={lengthCm}
                       onChange={(e) => setLengthCm(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-gray-800 text-base transition-all"
+                      className="w-full px-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-gray-800 text-lg transition-all"
                       required
                     />
                   </div>
@@ -111,7 +232,7 @@ export default function Home() {
                       placeholder="1200"
                       value={weightGr}
                       onChange={(e) => setWeightGr(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-gray-800 text-base transition-all"
+                      className="w-full px-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-gray-800 text-lg transition-all"
                     />
                   </div>
                 </div>
@@ -123,7 +244,7 @@ export default function Home() {
                     placeholder="Kumbağ, Şile, Boğaz..."
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-gray-800 text-base transition-all"
+                    className="w-full px-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-gray-800 text-lg transition-all"
                     required
                   />
                 </div>
@@ -134,13 +255,13 @@ export default function Home() {
                     placeholder="Olta takımı, yem, hava durumu..."
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-gray-800 text-base h-20 resize-none transition-all"
+                    className="w-full px-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-gray-800 text-lg h-24 resize-none transition-all"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold text-base py-4 rounded-xl hover:from-blue-700 hover:to-blue-600 active:scale-[0.98] transition-all shadow-lg shadow-blue-500/30"
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold text-lg py-5 rounded-xl hover:from-blue-700 hover:to-blue-600 active:scale-[0.98] transition-all shadow-lg shadow-blue-500/30"
                 >
                   💾 Kaydet
                 </button>
@@ -342,7 +463,7 @@ export default function Home() {
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <h3 className="text-lg font-bold text-gray-800 mb-4">ℹ️ Hakkında</h3>
               <div className="space-y-2 text-sm text-gray-600">
-                <p><strong>Versiyon:</strong> 1.0.0</p>
+                <p><strong>Versiyon:</strong> 1.1.0</p>
                 <p><strong>Geliştirici:</strong> UZ FishLog Team</p>
                 <p className="pt-3 text-xs text-gray-500">
                   Tüm balık avı kayıtlarınız Supabase'de güvenle saklanmaktadır.
@@ -353,13 +474,13 @@ export default function Home() {
         )}
       </div>
 
-      {/* Bottom Tab Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-lg border-t border-gray-200">
+      {/* Bottom Tab Bar - Artık padding var */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-lg border-t border-gray-200 safe-area-inset-bottom">
         <div className="max-w-4xl mx-auto px-4">
-          <div className="flex items-center justify-around py-2">
+          <div className="flex items-center justify-around py-3">
             <button
               onClick={() => setActiveTab('catches')}
-              className={`flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all ${
+              className={`flex flex-col items-center gap-1 py-2 px-6 rounded-xl transition-all ${
                 activeTab === 'catches' ? 'text-blue-600 bg-blue-50' : 'text-gray-500'
               }`}
             >
@@ -369,7 +490,7 @@ export default function Home() {
 
             <button
               onClick={() => setActiveTab('stats')}
-              className={`flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all ${
+              className={`flex flex-col items-center gap-1 py-2 px-6 rounded-xl transition-all ${
                 activeTab === 'stats' ? 'text-blue-600 bg-blue-50' : 'text-gray-500'
               }`}
             >
@@ -379,7 +500,7 @@ export default function Home() {
 
             <button
               onClick={() => setActiveTab('profile')}
-              className={`flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all ${
+              className={`flex flex-col items-center gap-1 py-2 px-6 rounded-xl transition-all ${
                 activeTab === 'profile' ? 'text-blue-600 bg-blue-50' : 'text-gray-500'
               }`}
             >
