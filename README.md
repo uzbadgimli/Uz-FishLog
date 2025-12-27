@@ -9,7 +9,6 @@ Balık avlarınızı kaydedin ve takip edin. Türk balıkçılar için özel tas
 - 📊 İstatistikler
 - 🗺️ Konum Takibi
 - 📝 Detaylı Kayıtlar
-- 📋 3 Tab Yapısı
 
 ## Kurulum
 
