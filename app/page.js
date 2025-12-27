@@ -9,7 +9,23 @@ export default function Home() {
   const [catches, setCatches] = useState([])
   const [weather, setWeather] = useState(null)
   const [loadingWeather, setLoadingWeather] = useState(true)
-  
+
+  // Tema - Dark/Light
+  const [isDarkMode, setIsDarkMode] = useState(false)
+
+  // Tema renkleri
+  const theme = {
+    bg: isDarkMode ? '#0F172A' : '#F8FAFC',
+    cardBg: isDarkMode ? '#1E293B' : 'white',
+    cardBorder: isDarkMode ? '#334155' : '#E2E8F0',
+    text: isDarkMode ? '#F1F5F9' : '#1E3A8A',
+    textSecondary: isDarkMode ? '#94A3B8' : '#64748B',
+    topBar: isDarkMode ? '#0F172A' : '#1E3A8A',
+    tabNav: isDarkMode ? '#1E293B' : '#1E40AF',
+    inputBg: isDarkMode ? '#334155' : '#F8FAFC',
+    inputBorder: isDarkMode ? '#475569' : '#E2E8F0'
+  }
+
   // Hava & Deniz tab için
   const [selectedLocation, setSelectedLocation] = useState(null)
   const [weatherData, setWeatherData] = useState(null)
@@ -344,15 +360,36 @@ export default function Home() {
     const minorStart2 = Math.floor((baseHour + 12.4) % 24)
 
     // Balık aktivite skoru (1-10)
-    // Dolunay ve Yeni Ay en yüksek, dördünler en düşük
-    let activityScore
-    if (moonData.phase === 0 || moonData.phase === 4) { // Yeni Ay veya Dolunay
-      activityScore = 9 + Math.random()
-    } else if (moonData.phase === 2 || moonData.phase === 6) { // Dördünler
-      activityScore = 4 + Math.random() * 2
+    // Solunar teorisine göre: Yeni Ay ve Dolunay en yüksek aktivite
+    // Ay yaşı 0 veya 14.76 (yarı döngü) civarında en yüksek
+    // Ay yaşı 7.38 veya 22.14 (dördünler) civarında en düşük
+
+    // Ay döngüsü: 29.53 gün
+    // 0 gün = Yeni Ay (en yüksek)
+    // 7.38 gün = İlk Dördün (en düşük)
+    // 14.76 gün = Dolunay (en yüksek)
+    // 22.14 gün = Son Dördün (en düşük)
+
+    const moonCycle = 29.5305882
+    const halfCycle = moonCycle / 2
+    const quarterCycle = moonCycle / 4
+
+    // Yeni Ay veya Dolunay'a olan uzaklık (0-7.38 arası)
+    // moonAge 0 veya 14.76'ya ne kadar yakınsa o kadar yüksek skor
+    let distanceFromPeak
+    if (moonData.moonAge <= halfCycle) {
+      // 0-14.76 arası: 0 ve 14.76 en yüksek, 7.38 en düşük
+      distanceFromPeak = Math.abs(moonData.moonAge - (moonData.moonAge < quarterCycle ? 0 : halfCycle))
     } else {
-      activityScore = 6 + Math.random() * 2
+      // 14.76-29.53 arası: 14.76 ve 29.53(0) en yüksek, 22.14 en düşük
+      distanceFromPeak = Math.abs(moonData.moonAge - (moonData.moonAge < halfCycle + quarterCycle ? halfCycle : moonCycle))
     }
+
+    // Mesafeyi 0-1 arasına normalize et (0 = tepe noktası, 1 = dördün)
+    const normalizedDistance = distanceFromPeak / quarterCycle
+
+    // Skor: Tepe noktalarında 9-10, dördünlerde 4-5
+    const activityScore = 10 - (normalizedDistance * 5.5)
 
     return {
       ...moonData,
@@ -399,9 +436,9 @@ export default function Home() {
   })
 
   return (
-    <main className={styles.container}>
+    <main className={styles.container} style={{ background: theme.bg, minHeight: '100vh' }}>
       {/* Top Bar */}
-      <div className={styles.topBar}>
+      <div className={styles.topBar} style={{ background: theme.topBar }}>
         <div className={styles.topBarContent}>
           <div className={styles.logo}>
             <div className={styles.logoIcon}>🎣</div>
@@ -418,11 +455,28 @@ export default function Home() {
               </div>
             )}
             <div className={styles.moonIcon}>{moonPhase.icon}</div>
+            {/* Theme Toggle */}
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              style={{
+                background: isDarkMode ? '#334155' : 'rgba(255,255,255,0.2)',
+                border: 'none',
+                borderRadius: '0.5rem',
+                padding: '0.5rem',
+                cursor: 'pointer',
+                fontSize: '1.25rem',
+                marginLeft: '0.5rem',
+                transition: 'all 0.3s'
+              }}
+              title={isDarkMode ? 'Açık Tema' : 'Koyu Tema'}
+            >
+              {isDarkMode ? '☀️' : '🌙'}
+            </button>
           </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className={styles.tabNav}>
+        <div className={styles.tabNav} style={{ background: theme.tabNav }}>
           <div className={styles.tabNavContent}>
             <button
               onClick={() => setActiveTab('home')}
@@ -478,8 +532,8 @@ export default function Home() {
         {activeTab === 'home' && (
           <div>
             <div className={styles.pageTitle}>
-              <h2>Hoş Geldin!</h2>
-              <p>Bugün nasıl bir av günü olacak?</p>
+              <h2 style={{ color: theme.text }}>Hoş Geldin!</h2>
+              <p style={{ color: theme.textSecondary }}>Bugün nasıl bir av günü olacak?</p>
             </div>
 
             {/* Bugünkü vs Toplam */}
@@ -498,9 +552,9 @@ export default function Home() {
 
             {/* Hava Durumu */}
             {weather && (
-              <div className={styles.weatherCard}>
+              <div className={styles.weatherCard} style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
                 <div className={styles.weatherCardHeader}>
-                  <h3>🌊 İstanbul - Marmara</h3>
+                  <h3 style={{ color: theme.text }}>🌊 İstanbul - Marmara</h3>
                   <div className="weatherIcon">{getWeatherIcon(weather.current.weather_code)}</div>
                 </div>
                 <div style={{
@@ -509,55 +563,60 @@ export default function Home() {
                   gap: '0.75rem'
                 }}>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1E40AF' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
                       {Math.round(weather.current.temperature_2m)}°C
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Sıcaklık</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Sıcaklık</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1E40AF' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
                       {Math.round(weather.current.wind_speed_10m)}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Rüzgar (km/s)</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Rüzgar (km/s)</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1E40AF' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
                       {getWindDirection(weather.current.wind_direction_10m)}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Yön</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Yön</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1E40AF' }}>
-                      {weather.marine?.wave_height?.[0] 
-                        ? `${Math.round(weather.marine.wave_height[0] * 100)}cm` 
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
+                      {weather.marine?.wave_height?.[0]
+                        ? `${Math.round(weather.marine.wave_height[0] * 100)}cm`
                         : '0cm'}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Dalga</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Dalga</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1E40AF' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
                       {Math.round(weather.current.relative_humidity_2m)}%
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Nem</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Nem</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1E40AF' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
                       {Math.round(weather.current.pressure_msl)}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Basınç</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Basınç</div>
                   </div>
                 </div>
-                <div className={styles.fishSuggestion}>
-                  <h4>🐟 Bu Havada Hangi Balık?</h4>
-                  <p style={{ marginBottom: '0.75rem' }}>
+                <div style={{
+                  marginTop: '1rem',
+                  padding: '1rem',
+                  background: isDarkMode ? '#334155' : '#EFF6FF',
+                  borderRadius: '0.75rem'
+                }}>
+                  <h4 style={{ color: theme.text, marginBottom: '0.5rem' }}>🐟 Bu Havada Hangi Balık?</h4>
+                  <p style={{ marginBottom: '0.75rem', color: isDarkMode ? '#CBD5E1' : '#475569' }}>
                     {getFishSuggestion(weather.current.temperature_2m, weather.current.wind_speed_10m).fish}
                   </p>
                   <div style={{
                     paddingTop: '0.75rem',
-                    borderTop: '1px solid rgba(30, 64, 175, 0.2)'
+                    borderTop: `1px solid ${isDarkMode ? '#475569' : 'rgba(30, 64, 175, 0.2)'}`
                   }}>
-                    <strong style={{ fontSize: '0.875rem' }}>🎣 Tavsiye Yem:</strong>
-                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem' }}>
+                    <strong style={{ fontSize: '0.875rem', color: theme.text }}>🎣 Tavsiye Yem:</strong>
+                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: isDarkMode ? '#CBD5E1' : '#475569' }}>
                       {getFishSuggestion(weather.current.temperature_2m, weather.current.wind_speed_10m).bait}
                     </p>
                   </div>
@@ -575,10 +634,10 @@ export default function Home() {
 
             {/* Son Avlar */}
             {catches.length > 0 && (
-              <div className={styles.catchesCard}>
+              <div className={styles.catchesCard} style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
                 <div className={styles.catchesHeader}>
-                  <h3>🎣 Son Avlar</h3>
-                  <button 
+                  <h3 style={{ color: theme.text }}>🎣 Son Avlar</h3>
+                  <button
                     onClick={() => setActiveTab('catches')}
                     className={styles.viewAllButton}
                   >
@@ -587,11 +646,11 @@ export default function Home() {
                 </div>
                 <div>
                   {catches.slice(0, 3).map((c) => (
-                    <div 
-                      key={c.id} 
+                    <div
+                      key={c.id}
                       style={{
                         padding: '1rem',
-                        background: '#F8FAFC',
+                        background: isDarkMode ? '#334155' : '#F8FAFC',
                         borderRadius: '0.75rem',
                         marginBottom: '0.75rem',
                         borderLeft: '4px solid #FB923C'
@@ -605,7 +664,7 @@ export default function Home() {
                       }}>
                         <span style={{
                           fontWeight: 'bold',
-                          color: '#1E40AF',
+                          color: isDarkMode ? '#60A5FA' : '#1E40AF',
                           fontSize: '1.125rem',
                           textTransform: 'uppercase'
                         }}>
@@ -620,24 +679,24 @@ export default function Home() {
                           {c.length_cm} CM {c.weight_gr && `${c.weight_gr} GRAM`}
                         </span>
                       </div>
-                      
+
                       <div style={{
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'baseline'
                       }}>
                         <span style={{
-                          color: '#1E40AF',
+                          color: isDarkMode ? '#60A5FA' : '#1E40AF',
                           fontSize: '1.125rem', fontWeight: 'bold'
                         }}>
                           {c.location}
                         </span>
                         <span style={{
-                          color: '#64748B',
+                          color: theme.textSecondary,
                           fontSize: '1rem', fontWeight: '600',
                           whiteSpace: 'nowrap'
                         }}>
-                          {c.hunt_date 
+                          {c.hunt_date
                             ? new Date(c.hunt_date).toLocaleString('tr-TR', {
                                 day: '2-digit',
                                 month: '2-digit',
@@ -649,14 +708,14 @@ export default function Home() {
                           }
                         </span>
                       </div>
-                      
+
                       {c.notes && (
                         <div style={{
                           marginTop: '0.75rem',
                           paddingTop: '0.75rem',
-                          borderTop: '1px solid #E2E8F0',
+                          borderTop: `1px solid ${theme.cardBorder}`,
                           fontSize: '1rem', fontWeight: '600',
-                          color: '#475569',
+                          color: isDarkMode ? '#94A3B8' : '#475569',
                           textTransform: 'uppercase',
                           fontWeight: '600'
                         }}>
@@ -675,87 +734,94 @@ export default function Home() {
         {activeTab === 'catches' && (
           <div>
             {/* Yeni Av Formu */}
-            <div className={styles.formCard}>
-              <h3>➕ Yeni Av Ekle</h3>
+            <div className={styles.formCard} style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
+              <h3 style={{ color: theme.text }}>➕ Yeni Av Ekle</h3>
               <form onSubmit={addCatch}>
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>🐟 Balık Türü *</label>
+                  <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>🐟 Balık Türü *</label>
                   <input
                     type="text"
                     placeholder="Levrek, Çupra, Lüfer..."
                     value={species}
                     onChange={(e) => setSpecies(e.target.value)}
                     className={styles.formInput}
+                    style={{ background: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }}
                     required
                   />
                 </div>
 
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>📏 Boy (cm) *</label>
+                    <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>📏 Boy (cm) *</label>
                     <input
                       type="number"
                       placeholder="45"
                       value={lengthCm}
                       onChange={(e) => setLengthCm(e.target.value)}
                       className={styles.formInput}
+                      style={{ background: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }}
                       required
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>⚖️ Ağırlık (gr)</label>
+                    <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>⚖️ Ağırlık (gr)</label>
                     <input
                       type="number"
                       placeholder="1200"
                       value={weightGr}
                       onChange={(e) => setWeightGr(e.target.value)}
                       className={styles.formInput}
+                      style={{ background: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }}
                     />
                   </div>
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>📍 Tutulan Yer *</label>
+                  <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>📍 Tutulan Yer *</label>
                   <input
                     type="text"
                     placeholder="Kumbağ, Şile, Boğaz..."
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     className={styles.formInput}
+                    style={{ background: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }}
                     required
                   />
                 </div>
 
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>📅 Tarih *</label>
+                    <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>📅 Tarih *</label>
                     <input
                       type="date"
                       value={huntDate}
                       onChange={(e) => setHuntDate(e.target.value)}
                       className={styles.formInput}
+                      style={{ background: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }}
                       required
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>🕐 Saat *</label>
+                    <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>🕐 Saat *</label>
                     <input
                       type="time"
                       value={huntTime}
                       onChange={(e) => setHuntTime(e.target.value)}
                       className={styles.formInput}
+                      style={{ background: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }}
                       required
                     />
                   </div>
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>📝 Notlar</label>
+                  <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>📝 Notlar</label>
                   <textarea
                     placeholder="Olta takımı, yem, hava durumu, teknik..."
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     className={styles.formInput}
+                    style={{ background: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }}
                     rows="3"
                   />
                 </div>
@@ -768,17 +834,17 @@ export default function Home() {
 
             {/* Tüm Avlar Listesi */}
             {catches.length > 0 && (
-              <div className={styles.catchesCard}>
+              <div className={styles.catchesCard} style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
                 <div className={styles.catchesHeader}>
-                  <h3>📋 Tüm Avlarım ({catches.length})</h3>
+                  <h3 style={{ color: theme.text }}>📋 Tüm Avlarım ({catches.length})</h3>
                 </div>
                 <div>
                   {catches.map((c) => (
-                    <div 
-                      key={c.id} 
+                    <div
+                      key={c.id}
                       style={{
                         padding: '1rem',
-                        background: '#F8FAFC',
+                        background: isDarkMode ? '#334155' : '#F8FAFC',
                         borderRadius: '0.75rem',
                         marginBottom: '0.75rem',
                         borderLeft: '4px solid #FB923C'
@@ -793,7 +859,7 @@ export default function Home() {
                       }}>
                         <span style={{
                           fontWeight: 'bold',
-                          color: '#1E40AF',
+                          color: isDarkMode ? '#60A5FA' : '#1E40AF',
                           fontSize: '1.125rem',
                           textTransform: 'uppercase'
                         }}>
@@ -808,7 +874,7 @@ export default function Home() {
                           {c.length_cm} CM {c.weight_gr && `${c.weight_gr} GRAM`}
                         </span>
                       </div>
-                      
+
                       {/* İkinci satır: Yer ve Tarih */}
                       <div style={{
                         display: 'flex',
@@ -816,17 +882,17 @@ export default function Home() {
                         alignItems: 'baseline'
                       }}>
                         <span style={{
-                          color: '#1E40AF',
+                          color: isDarkMode ? '#60A5FA' : '#1E40AF',
                           fontSize: '1.125rem', fontWeight: 'bold'
                         }}>
                           {c.location}
                         </span>
                         <span style={{
-                          color: '#64748B',
+                          color: theme.textSecondary,
                           fontSize: '1rem', fontWeight: '600',
                           whiteSpace: 'nowrap'
                         }}>
-                          {c.hunt_date 
+                          {c.hunt_date
                             ? new Date(c.hunt_date).toLocaleString('tr-TR', {
                                 day: '2-digit',
                                 month: '2-digit',
@@ -838,15 +904,15 @@ export default function Home() {
                           }
                         </span>
                       </div>
-                      
+
                       {/* Not */}
                       {c.notes && (
                         <div style={{
                           marginTop: '0.75rem',
                           paddingTop: '0.75rem',
-                          borderTop: '1px solid #E2E8F0',
+                          borderTop: `1px solid ${theme.cardBorder}`,
                           fontSize: '1rem', fontWeight: '600',
-                          color: '#475569',
+                          color: isDarkMode ? '#94A3B8' : '#475569',
                           textTransform: 'uppercase',
                           fontWeight: '600'
                         }}>
@@ -873,22 +939,24 @@ export default function Home() {
         {activeTab === 'weather' && (
           <div>
             <div className={styles.pageTitle}>
-              <h2>🌊 Hava & Deniz Durumu</h2>
-              <p>Favori yerlerden seç</p>
+              <h2 style={{ color: theme.text }}>🌊 Hava & Deniz Durumu</h2>
+              <p style={{ color: theme.textSecondary }}>Favori yerlerden seç</p>
             </div>
 
-            {/* Favori Lokasyonlar */}
+            {/* Favori Lokasyonlar - 6 adet gerçek koordinatlarla */}
             <div style={{
               marginBottom: '1rem',
               display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
+              gridTemplateColumns: 'repeat(3, 1fr)',
               gap: '0.5rem'
             }}>
               {[
-                { name: 'Kumbağ', lat: 40.9833, lon: 27.9667 },
-                { name: 'Şile', lat: 41.1764, lon: 29.6094 },
-                { name: 'Hereke', lat: 40.7833, lon: 29.6333 },
-                { name: 'İzmit Körfezi', lat: 40.7667, lon: 29.9167 }
+                { name: 'Kumbağ', lat: 40.8867, lon: 27.4547 },      // Tekirdağ - Marmara
+                { name: 'Altınova', lat: 40.7000, lon: 29.5000 },    // Yalova - Marmara
+                { name: 'NATO Limanı', lat: 40.7697, lon: 29.4547 }, // İzmit - Marmara
+                { name: 'Pendik', lat: 40.8761, lon: 29.2336 },      // İstanbul - Marmara
+                { name: 'Şile', lat: 41.1764, lon: 29.6094 },        // İstanbul - Karadeniz
+                { name: 'Atakum', lat: 41.3289, lon: 36.2792 }       // Samsun - Karadeniz
               ].map((loc) => (
                 <button
                   key={loc.name}
@@ -897,14 +965,15 @@ export default function Home() {
                     fetchWeatherForLocation(loc.lat, loc.lon)
                   }}
                   style={{
-                    padding: '0.75rem',
-                    background: selectedLocation?.name === loc.name ? '#1E40AF' : 'white',
-                    color: selectedLocation?.name === loc.name ? 'white' : '#1E40AF',
-                    border: '2px solid #1E40AF',
+                    padding: '0.6rem 0.4rem',
+                    background: selectedLocation?.name === loc.name ? '#1E40AF' : (isDarkMode ? '#334155' : 'white'),
+                    color: selectedLocation?.name === loc.name ? 'white' : (isDarkMode ? '#60A5FA' : '#1E40AF'),
+                    border: `2px solid ${selectedLocation?.name === loc.name ? '#1E40AF' : (isDarkMode ? '#60A5FA' : '#1E40AF')}`,
                     borderRadius: '0.75rem',
                     fontWeight: 'bold',
                     cursor: 'pointer',
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s',
+                    fontSize: '0.8rem'
                   }}
                 >
                   📍 {loc.name}
@@ -915,50 +984,100 @@ export default function Home() {
             {/* Detaylı Hava Durumu */}
             {selectedLocation && weatherData && (
               <div>
+                {/* Ana Hava Kartı - 6 Bilgi */}
                 <div style={{
-                  background: 'linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%)',
+                  background: theme.cardBg,
                   borderRadius: '1rem',
                   padding: '1.5rem',
-                  color: 'white',
+                  border: `1px solid ${theme.cardBorder}`,
                   marginBottom: '1rem'
                 }}>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-                    📍 {selectedLocation.name} - Şu An
-                  </h3>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: theme.text }}>
+                      📍 {selectedLocation.name}
+                    </h3>
+                    <div style={{ fontSize: '2.5rem' }}>
+                      {getWeatherIcon(weatherData.current.weather_code)}
+                    </div>
+                  </div>
+
                   <div style={{
                     display: 'grid',
                     gridTemplateColumns: '1fr 1fr 1fr',
-                    gap: '1rem'
+                    gap: '0.75rem'
                   }}>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
-                        {Math.round(weatherData.current.temperature_2m)}°
+                      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
+                        {Math.round(weatherData.current.temperature_2m)}°C
                       </div>
-                      <div style={{ fontSize: '0.75rem', opacity: 0.9 }}>Sıcaklık</div>
+                      <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Sıcaklık</div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
                         {Math.round(weatherData.current.wind_speed_10m)}
                       </div>
-                      <div style={{ fontSize: '0.75rem', opacity: 0.9 }}>Rüzgar</div>
+                      <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Rüzgar (km/s)</div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
                         {getWindDirection(weatherData.current.wind_direction_10m)}
                       </div>
-                      <div style={{ fontSize: '0.75rem', opacity: 0.9 }}>Yön</div>
+                      <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Yön</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
+                        {weatherData.marine?.wave_height?.[0]
+                          ? `${Math.round(weatherData.marine.wave_height[0] * 100)}cm`
+                          : '0cm'}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Dalga</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
+                        {Math.round(weatherData.current.relative_humidity_2m)}%
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Nem</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
+                        {Math.round(weatherData.current.pressure_msl)}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Basınç</div>
+                    </div>
+                  </div>
+
+                  {/* Bu Havada Hangi Balık? */}
+                  <div style={{
+                    marginTop: '1rem',
+                    padding: '1rem',
+                    background: isDarkMode ? '#334155' : '#EFF6FF',
+                    borderRadius: '0.75rem'
+                  }}>
+                    <h4 style={{ color: theme.text, marginBottom: '0.5rem' }}>🐟 Bu Havada Hangi Balık?</h4>
+                    <p style={{ marginBottom: '0.75rem', color: isDarkMode ? '#CBD5E1' : '#475569' }}>
+                      {getFishSuggestion(weatherData.current.temperature_2m, weatherData.current.wind_speed_10m).fish}
+                    </p>
+                    <div style={{
+                      paddingTop: '0.75rem',
+                      borderTop: `1px solid ${isDarkMode ? '#475569' : 'rgba(30, 64, 175, 0.2)'}`
+                    }}>
+                      <strong style={{ fontSize: '0.875rem', color: theme.text }}>🎣 Tavsiye Yem:</strong>
+                      <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: isDarkMode ? '#CBD5E1' : '#475569' }}>
+                        {getFishSuggestion(weatherData.current.temperature_2m, weatherData.current.wind_speed_10m).bait}
+                      </p>
                     </div>
                   </div>
                 </div>
 
+                {/* 7 Günlük Tahmin */}
                 <div style={{
-                  background: 'white',
+                  background: theme.cardBg,
                   borderRadius: '1rem',
                   padding: '1rem',
-                  border: '1px solid #E2E8F0',
+                  border: `1px solid ${theme.cardBorder}`,
                   marginBottom: '1rem'
                 }}>
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1E40AF', marginBottom: '1rem' }}>
+                  <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: theme.text, marginBottom: '1rem' }}>
                     📅 7 Günlük Tahmin
                   </h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -968,11 +1087,11 @@ export default function Home() {
                         gridTemplateColumns: '2fr 1fr 2fr 1fr',
                         alignItems: 'center',
                         padding: '0.75rem',
-                        background: '#F8FAFC',
+                        background: isDarkMode ? '#334155' : '#F8FAFC',
                         borderRadius: '0.5rem',
                         gap: '0.5rem'
                       }}>
-                        <div style={{ fontWeight: '600', color: '#1E40AF', fontSize: '0.875rem' }}>
+                        <div style={{ fontWeight: '600', color: isDarkMode ? '#60A5FA' : '#1E40AF', fontSize: '0.875rem' }}>
                           {new Date(date).toLocaleDateString('tr-TR', { weekday: 'short', day: 'numeric', month: 'short' })}
                         </div>
                         <div style={{ fontSize: '1.5rem', textAlign: 'center' }}>
@@ -980,9 +1099,9 @@ export default function Home() {
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-around', fontWeight: 'bold', fontSize: '0.875rem' }}>
                           <span style={{ color: '#FB923C' }}>{Math.round(weatherData.daily.temperature_2m_max[i])}°</span>
-                          <span style={{ color: '#64748B' }}>{Math.round(weatherData.daily.temperature_2m_min[i])}°</span>
+                          <span style={{ color: theme.textSecondary }}>{Math.round(weatherData.daily.temperature_2m_min[i])}°</span>
                         </div>
-                        <div style={{ textAlign: 'right', fontSize: '0.75rem', color: '#64748B' }}>
+                        <div style={{ textAlign: 'right', fontSize: '0.75rem', color: theme.textSecondary }}>
                           💨 {Math.round(weatherData.daily.wind_speed_10m_max[i])}
                         </div>
                       </div>
@@ -990,25 +1109,26 @@ export default function Home() {
                   </div>
                 </div>
 
+                {/* Gün Doğumu & Batımı */}
                 {weatherData.daily && (
-                  <div style={{ background: 'white', borderRadius: '1rem', padding: '1rem', border: '1px solid #E2E8F0' }}>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1E40AF', marginBottom: '1rem' }}>
+                  <div style={{ background: theme.cardBg, borderRadius: '1rem', padding: '1rem', border: `1px solid ${theme.cardBorder}` }}>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: theme.text, marginBottom: '1rem' }}>
                       ☀️ Gün Doğumu & Batımı
                     </h3>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                      <div style={{ textAlign: 'center', padding: '1rem', background: '#FEF3C7', borderRadius: '0.75rem' }}>
+                      <div style={{ textAlign: 'center', padding: '1rem', background: isDarkMode ? '#78350F' : '#FEF3C7', borderRadius: '0.75rem' }}>
                         <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🌅</div>
-                        <div style={{ fontWeight: 'bold', color: '#92400E' }}>
+                        <div style={{ fontWeight: 'bold', color: isDarkMode ? '#FCD34D' : '#92400E' }}>
                           {new Date(weatherData.daily.sunrise[0]).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: '#92400E' }}>Doğuş</div>
+                        <div style={{ fontSize: '0.75rem', color: isDarkMode ? '#FCD34D' : '#92400E' }}>Doğuş</div>
                       </div>
-                      <div style={{ textAlign: 'center', padding: '1rem', background: '#DBEAFE', borderRadius: '0.75rem' }}>
+                      <div style={{ textAlign: 'center', padding: '1rem', background: isDarkMode ? '#1E3A5F' : '#DBEAFE', borderRadius: '0.75rem' }}>
                         <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🌇</div>
-                        <div style={{ fontWeight: 'bold', color: '#1E3A8A' }}>
+                        <div style={{ fontWeight: 'bold', color: isDarkMode ? '#93C5FD' : '#1E3A8A' }}>
                           {new Date(weatherData.daily.sunset[0]).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: '#1E3A8A' }}>Batış</div>
+                        <div style={{ fontSize: '0.75rem', color: isDarkMode ? '#93C5FD' : '#1E3A8A' }}>Batış</div>
                       </div>
                     </div>
                   </div>
@@ -1017,12 +1137,12 @@ export default function Home() {
             )}
 
             {!selectedLocation && (
-              <div style={{ textAlign: 'center', padding: '3rem 1rem', background: 'white', borderRadius: '1rem', border: '1px solid #E2E8F0' }}>
+              <div style={{ textAlign: 'center', padding: '3rem 1rem', background: theme.cardBg, borderRadius: '1rem', border: `1px solid ${theme.cardBorder}` }}>
                 <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🗺️</div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1E40AF', marginBottom: '0.5rem' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: theme.text, marginBottom: '0.5rem' }}>
                   Bir Lokasyon Seç
                 </h3>
-                <p style={{ color: '#64748B' }}>
+                <p style={{ color: theme.textSecondary }}>
                   Yukarıdaki butonlardan favori yerini seç
                 </p>
               </div>
@@ -1034,8 +1154,8 @@ export default function Home() {
         {activeTab === 'lunar' && (
           <div>
             <div className={styles.pageTitle}>
-              <h2>🌙 Balık Aktivite Takvimi</h2>
-              <p>Ay fazları ve solunar zamanlar</p>
+              <h2 style={{ color: theme.text }}>🌙 Balık Aktivite Takvimi</h2>
+              <p style={{ color: theme.textSecondary }}>Ay fazları ve solunar zamanlar</p>
             </div>
 
             {/* Bugünün Özeti */}
@@ -1127,13 +1247,13 @@ export default function Home() {
               const todaySolunar = getSolunarData(new Date())
               return (
                 <div style={{
-                  background: 'white',
+                  background: theme.cardBg,
                   borderRadius: '1rem',
                   padding: '1rem',
-                  border: '1px solid #E2E8F0',
+                  border: `1px solid ${theme.cardBorder}`,
                   marginBottom: '1rem'
                 }}>
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1E40AF', marginBottom: '1rem' }}>
+                  <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: theme.text, marginBottom: '1rem' }}>
                     ⏰ En İyi Avlanma Saatleri
                   </h3>
 
@@ -1153,26 +1273,26 @@ export default function Home() {
                         fontSize: '0.75rem',
                         fontWeight: 'bold'
                       }}>MAJOR</span>
-                      <span style={{ fontSize: '0.75rem', color: '#64748B' }}>2 saat - Yüksek aktivite</span>
+                      <span style={{ fontSize: '0.75rem', color: theme.textSecondary }}>2 saat - Yüksek aktivite</span>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                       <div style={{
-                        background: '#DCFCE7',
+                        background: isDarkMode ? '#166534' : '#DCFCE7',
                         padding: '0.75rem',
                         borderRadius: '0.5rem',
                         textAlign: 'center',
                         fontWeight: 'bold',
-                        color: '#166534'
+                        color: isDarkMode ? '#86EFAC' : '#166534'
                       }}>
                         {todaySolunar.major1}
                       </div>
                       <div style={{
-                        background: '#DCFCE7',
+                        background: isDarkMode ? '#166534' : '#DCFCE7',
                         padding: '0.75rem',
                         borderRadius: '0.5rem',
                         textAlign: 'center',
                         fontWeight: 'bold',
-                        color: '#166534'
+                        color: isDarkMode ? '#86EFAC' : '#166534'
                       }}>
                         {todaySolunar.major2}
                       </div>
@@ -1195,26 +1315,26 @@ export default function Home() {
                         fontSize: '0.75rem',
                         fontWeight: 'bold'
                       }}>MINOR</span>
-                      <span style={{ fontSize: '0.75rem', color: '#64748B' }}>1 saat - Orta aktivite</span>
+                      <span style={{ fontSize: '0.75rem', color: theme.textSecondary }}>1 saat - Orta aktivite</span>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                       <div style={{
-                        background: '#FEF3C7',
+                        background: isDarkMode ? '#78350F' : '#FEF3C7',
                         padding: '0.75rem',
                         borderRadius: '0.5rem',
                         textAlign: 'center',
                         fontWeight: 'bold',
-                        color: '#92400E'
+                        color: isDarkMode ? '#FCD34D' : '#92400E'
                       }}>
                         {todaySolunar.minor1}
                       </div>
                       <div style={{
-                        background: '#FEF3C7',
+                        background: isDarkMode ? '#78350F' : '#FEF3C7',
                         padding: '0.75rem',
                         borderRadius: '0.5rem',
                         textAlign: 'center',
                         fontWeight: 'bold',
-                        color: '#92400E'
+                        color: isDarkMode ? '#FCD34D' : '#92400E'
                       }}>
                         {todaySolunar.minor2}
                       </div>
@@ -1230,34 +1350,34 @@ export default function Home() {
               const moonTip = getMoonFishSuggestion(todaySolunar.phase)
               return (
                 <div style={{
-                  background: 'white',
+                  background: theme.cardBg,
                   borderRadius: '1rem',
                   padding: '1rem',
-                  border: '1px solid #E2E8F0',
+                  border: `1px solid ${theme.cardBorder}`,
                   marginBottom: '1rem'
                 }}>
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1E40AF', marginBottom: '1rem' }}>
+                  <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: theme.text, marginBottom: '1rem' }}>
                     🐟 {moonTip.title}
                   </h3>
 
                   <div style={{ marginBottom: '0.75rem' }}>
-                    <div style={{ fontSize: '0.75rem', color: '#64748B', marginBottom: '0.25rem' }}>Aktif Balıklar</div>
-                    <div style={{ fontWeight: '600', color: '#1E3A8A' }}>{moonTip.fish}</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '0.25rem' }}>Aktif Balıklar</div>
+                    <div style={{ fontWeight: '600', color: isDarkMode ? '#60A5FA' : '#1E3A8A' }}>{moonTip.fish}</div>
                   </div>
 
                   <div style={{ marginBottom: '0.75rem' }}>
-                    <div style={{ fontSize: '0.75rem', color: '#64748B', marginBottom: '0.25rem' }}>Tavsiye</div>
-                    <div style={{ fontSize: '0.875rem', color: '#475569' }}>{moonTip.tip}</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '0.25rem' }}>Tavsiye</div>
+                    <div style={{ fontSize: '0.875rem', color: isDarkMode ? '#CBD5E1' : '#475569' }}>{moonTip.tip}</div>
                   </div>
 
                   <div style={{
-                    background: '#F0FDF4',
+                    background: isDarkMode ? '#166534' : '#F0FDF4',
                     padding: '0.75rem',
                     borderRadius: '0.5rem',
                     borderLeft: '3px solid #22C55E'
                   }}>
-                    <div style={{ fontSize: '0.75rem', color: '#166534', marginBottom: '0.25rem' }}>🎣 Önerilen Yemler</div>
-                    <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#166534' }}>{moonTip.bait}</div>
+                    <div style={{ fontSize: '0.75rem', color: isDarkMode ? '#86EFAC' : '#166534', marginBottom: '0.25rem' }}>🎣 Önerilen Yemler</div>
+                    <div style={{ fontSize: '0.875rem', fontWeight: '600', color: isDarkMode ? '#86EFAC' : '#166534' }}>{moonTip.bait}</div>
                   </div>
                 </div>
               )
@@ -1265,12 +1385,12 @@ export default function Home() {
 
             {/* Ay Fazları Takvimi */}
             <div style={{
-              background: 'white',
+              background: theme.cardBg,
               borderRadius: '1rem',
               padding: '1rem',
-              border: '1px solid #E2E8F0'
+              border: `1px solid ${theme.cardBorder}`
             }}>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1E40AF', marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: theme.text, marginBottom: '1rem' }}>
                 📅 Ay Fazları Takvimi
               </h3>
 
@@ -1288,9 +1408,9 @@ export default function Home() {
                       borderRadius: '0.5rem',
                       textAlign: 'center',
                       cursor: 'pointer',
-                      background: day.isToday ? '#1E40AF' : selectedDay?.dayNum === day.dayNum && selectedDay?.month === day.month ? '#DBEAFE' : '#F8FAFC',
-                      color: day.isToday ? 'white' : '#1E3A8A',
-                      border: day.isToday ? 'none' : '1px solid #E2E8F0',
+                      background: day.isToday ? '#1E40AF' : selectedDay?.dayNum === day.dayNum && selectedDay?.month === day.month ? (isDarkMode ? '#334155' : '#DBEAFE') : (isDarkMode ? '#334155' : '#F8FAFC'),
+                      color: day.isToday ? 'white' : (isDarkMode ? '#60A5FA' : '#1E3A8A'),
+                      border: day.isToday ? 'none' : `1px solid ${theme.cardBorder}`,
                       transition: 'all 0.2s'
                     }}
                   >
@@ -1303,11 +1423,11 @@ export default function Home() {
                       padding: '0.125rem 0.25rem',
                       borderRadius: '0.25rem',
                       background: day.isToday ? 'rgba(255,255,255,0.2)' :
-                        parseFloat(day.activityScore) >= 7 ? '#DCFCE7' :
-                          parseFloat(day.activityScore) >= 5 ? '#FEF3C7' : '#FEE2E2',
+                        parseFloat(day.activityScore) >= 7 ? (isDarkMode ? '#166534' : '#DCFCE7') :
+                          parseFloat(day.activityScore) >= 5 ? (isDarkMode ? '#78350F' : '#FEF3C7') : (isDarkMode ? '#7F1D1D' : '#FEE2E2'),
                       color: day.isToday ? 'white' :
-                        parseFloat(day.activityScore) >= 7 ? '#166534' :
-                          parseFloat(day.activityScore) >= 5 ? '#92400E' : '#991B1B'
+                        parseFloat(day.activityScore) >= 7 ? (isDarkMode ? '#86EFAC' : '#166534') :
+                          parseFloat(day.activityScore) >= 5 ? (isDarkMode ? '#FCD34D' : '#92400E') : (isDarkMode ? '#FCA5A5' : '#991B1B')
                     }}>
                       {day.activityScore}
                     </div>
@@ -1320,23 +1440,23 @@ export default function Home() {
                 <div style={{
                   marginTop: '1rem',
                   padding: '1rem',
-                  background: '#F8FAFC',
+                  background: isDarkMode ? '#334155' : '#F8FAFC',
                   borderRadius: '0.75rem',
                   borderLeft: '4px solid #1E40AF'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                     <div>
-                      <div style={{ fontWeight: 'bold', color: '#1E40AF' }}>
+                      <div style={{ fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
                         {selectedDay.dayNum} {selectedDay.month} - {selectedDay.dayName}
                       </div>
-                      <div style={{ fontSize: '0.875rem', color: '#64748B' }}>
+                      <div style={{ fontSize: '0.875rem', color: theme.textSecondary }}>
                         {selectedDay.name}
                       </div>
                     </div>
                     <div style={{ fontSize: '2rem' }}>{selectedDay.icon}</div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.875rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.875rem', color: isDarkMode ? '#CBD5E1' : 'inherit' }}>
                     <div><strong>Aktivite:</strong> {selectedDay.activityScore}/10</div>
                     <div><strong>Ay Doğuşu:</strong> {selectedDay.moonrise}</div>
                     <div><strong>Major:</strong> {selectedDay.major1}</div>
@@ -1350,10 +1470,10 @@ export default function Home() {
             <div style={{
               marginTop: '1rem',
               padding: '1rem',
-              background: '#EFF6FF',
+              background: isDarkMode ? '#1E3A5F' : '#EFF6FF',
               borderRadius: '0.75rem',
               fontSize: '0.875rem',
-              color: '#1E40AF'
+              color: isDarkMode ? '#93C5FD' : '#1E40AF'
             }}>
               <strong>💡 Solunar Teorisi:</strong> Balıklar ay ve güneşin konumuna göre belirli saatlerde daha aktif olur.
               <strong> Major</strong> periyotlarda (ay tepe/dip noktasında) en yüksek aktivite,
@@ -1366,8 +1486,8 @@ export default function Home() {
         {activeTab === 'stats' && (
           <div>
             <div className={styles.pageTitle}>
-              <h2>📊 Av Analizi</h2>
-              <p>İstatistikler ve trendler</p>
+              <h2 style={{ color: theme.text }}>📊 Av Analizi</h2>
+              <p style={{ color: theme.textSecondary }}>İstatistikler ve trendler</p>
             </div>
 
             {catches.length === 0 ? (
@@ -1409,41 +1529,41 @@ export default function Home() {
 
                 {/* Boy/Ağırlık İstatistikleri */}
                 <div style={{
-                  background: 'white',
+                  background: theme.cardBg,
                   borderRadius: '1rem',
                   padding: '1rem',
-                  border: '1px solid #E2E8F0',
+                  border: `1px solid ${theme.cardBorder}`,
                   marginBottom: '1rem'
                 }}>
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1E40AF', marginBottom: '1rem' }}>
+                  <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: theme.text, marginBottom: '1rem' }}>
                     📏 Boy & Ağırlık
                   </h3>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div style={{
-                      background: '#F0FDF4',
+                      background: isDarkMode ? '#166534' : '#F0FDF4',
                       padding: '1rem',
                       borderRadius: '0.75rem',
                       textAlign: 'center'
                     }}>
-                      <div style={{ fontSize: '0.75rem', color: '#166534', marginBottom: '0.25rem' }}>En Büyük</div>
-                      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#166534' }}>
+                      <div style={{ fontSize: '0.75rem', color: isDarkMode ? '#86EFAC' : '#166534', marginBottom: '0.25rem' }}>En Büyük</div>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#86EFAC' : '#166534' }}>
                         {Math.max(...catches.map(c => c.length_cm))} cm
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                      <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>
                         {catches.find(c => c.length_cm === Math.max(...catches.map(c => c.length_cm)))?.species}
                       </div>
                     </div>
                     <div style={{
-                      background: '#FEF3C7',
+                      background: isDarkMode ? '#78350F' : '#FEF3C7',
                       padding: '1rem',
                       borderRadius: '0.75rem',
                       textAlign: 'center'
                     }}>
-                      <div style={{ fontSize: '0.75rem', color: '#92400E', marginBottom: '0.25rem' }}>Ortalama</div>
-                      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#92400E' }}>
+                      <div style={{ fontSize: '0.75rem', color: isDarkMode ? '#FCD34D' : '#92400E', marginBottom: '0.25rem' }}>Ortalama</div>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#FCD34D' : '#92400E' }}>
                         {Math.round(catches.reduce((sum, c) => sum + c.length_cm, 0) / catches.length)} cm
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                      <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>
                         {catches.filter(c => c.weight_gr).length > 0 &&
                           `${Math.round(catches.filter(c => c.weight_gr).reduce((sum, c) => sum + c.weight_gr, 0) / catches.filter(c => c.weight_gr).length)} gr ort.`
                         }
@@ -1454,13 +1574,13 @@ export default function Home() {
 
                 {/* Tür Dağılımı */}
                 <div style={{
-                  background: 'white',
+                  background: theme.cardBg,
                   borderRadius: '1rem',
                   padding: '1rem',
-                  border: '1px solid #E2E8F0',
+                  border: `1px solid ${theme.cardBorder}`,
                   marginBottom: '1rem'
                 }}>
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1E40AF', marginBottom: '1rem' }}>
+                  <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: theme.text, marginBottom: '1rem' }}>
                     🐟 Tür Dağılımı
                   </h3>
                   {(() => {
@@ -1470,19 +1590,19 @@ export default function Home() {
                     }, {})
                     const sorted = Object.entries(speciesCount).sort((a, b) => b[1] - a[1])
                     const maxCount = Math.max(...Object.values(speciesCount))
-                    const colors = ['#1E40AF', '#7C3AED', '#EC4899', '#F97316', '#22C55E']
+                    const colors = ['#60A5FA', '#A78BFA', '#F472B6', '#FB923C', '#4ADE80']
 
                     return (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         {sorted.map(([species, count], idx) => (
                           <div key={species}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                              <span style={{ fontWeight: '600', color: '#1E3A8A', textTransform: 'uppercase' }}>{species}</span>
+                              <span style={{ fontWeight: '600', color: isDarkMode ? '#60A5FA' : '#1E3A8A', textTransform: 'uppercase' }}>{species}</span>
                               <span style={{ fontWeight: 'bold', color: colors[idx % colors.length] }}>{count} adet</span>
                             </div>
                             <div style={{
                               height: '8px',
-                              background: '#E2E8F0',
+                              background: isDarkMode ? '#475569' : '#E2E8F0',
                               borderRadius: '4px',
                               overflow: 'hidden'
                             }}>
@@ -1502,13 +1622,13 @@ export default function Home() {
 
                 {/* En Başarılı Yerler */}
                 <div style={{
-                  background: 'white',
+                  background: theme.cardBg,
                   borderRadius: '1rem',
                   padding: '1rem',
-                  border: '1px solid #E2E8F0',
+                  border: `1px solid ${theme.cardBorder}`,
                   marginBottom: '1rem'
                 }}>
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1E40AF', marginBottom: '1rem' }}>
+                  <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: theme.text, marginBottom: '1rem' }}>
                     📍 En Başarılı Yerler
                   </h3>
                   {(() => {
@@ -1527,12 +1647,12 @@ export default function Home() {
                             justifyContent: 'space-between',
                             alignItems: 'center',
                             padding: '0.75rem',
-                            background: idx === 0 ? '#FEF3C7' : '#F8FAFC',
+                            background: idx === 0 ? (isDarkMode ? '#78350F' : '#FEF3C7') : (isDarkMode ? '#334155' : '#F8FAFC'),
                             borderRadius: '0.5rem'
                           }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                               <span style={{ fontSize: '1.25rem' }}>{medals[idx]}</span>
-                              <span style={{ fontWeight: '600', color: '#1E3A8A' }}>{location}</span>
+                              <span style={{ fontWeight: '600', color: isDarkMode ? '#60A5FA' : '#1E3A8A' }}>{location}</span>
                             </div>
                             <span style={{ fontWeight: 'bold', color: '#FB923C' }}>{count} av</span>
                           </div>
@@ -1544,12 +1664,12 @@ export default function Home() {
 
                 {/* En Başarılı Saatler */}
                 <div style={{
-                  background: 'white',
+                  background: theme.cardBg,
                   borderRadius: '1rem',
                   padding: '1rem',
-                  border: '1px solid #E2E8F0'
+                  border: `1px solid ${theme.cardBorder}`
                 }}>
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1E40AF', marginBottom: '1rem' }}>
+                  <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: theme.text, marginBottom: '1rem' }}>
                     ⏰ Saat Dağılımı
                   </h3>
                   {(() => {
@@ -1575,14 +1695,14 @@ export default function Home() {
                           return (
                             <div key={period} style={{
                               padding: '1rem',
-                              background: '#F8FAFC',
+                              background: isDarkMode ? '#334155' : '#F8FAFC',
                               borderRadius: '0.75rem',
                               textAlign: 'center'
                             }}>
                               <div style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>{icons[period]}</div>
-                              <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1E40AF' }}>{count}</div>
-                              <div style={{ fontSize: '0.75rem', color: '#64748B' }}>{period.split(' ')[0]}</div>
-                              <div style={{ fontSize: '0.625rem', color: '#94A3B8' }}>%{percent}</div>
+                              <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>{count}</div>
+                              <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{period.split(' ')[0]}</div>
+                              <div style={{ fontSize: '0.625rem', color: isDarkMode ? '#64748B' : '#94A3B8' }}>%{percent}</div>
                             </div>
                           )
                         })}
