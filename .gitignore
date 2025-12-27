@@ -27,6 +27,7 @@ yarn-error.log*
 
 # deployment & credentials
 PLESK_DEPLOYMENT.md
+QUICK_START.md
 *_CREDENTIALS*
 *_credentials*
 *.credentials
