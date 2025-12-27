@@ -111,62 +111,185 @@ export default function Home() {
   }
 
   function getWindDirection(degrees) {
+    // Rüzgar yönü: derece rüzgarın GELDİĞİ yönü gösterir
+    // Kuzey (0°) = Kuzeyden gelen = Güneye doğru esen = ↓
     const directions = [
-      { name: 'K', arrow: '↑' },
-      { name: 'KD', arrow: '↗' },
-      { name: 'D', arrow: '→' },
-      { name: 'GD', arrow: '↘' },
-      { name: 'G', arrow: '↓' },
-      { name: 'GB', arrow: '↙' },
-      { name: 'B', arrow: '←' },
-      { name: 'KB', arrow: '↖' }
+      { name: 'K', arrow: '↓' },   // Kuzeyden esen, güneye gidiyor
+      { name: 'KD', arrow: '↙' },  // Kuzeydoğudan esen
+      { name: 'D', arrow: '←' },   // Doğudan esen, batıya gidiyor
+      { name: 'GD', arrow: '↖' },  // Güneydoğudan esen
+      { name: 'G', arrow: '↑' },   // Güneyden esen, kuzeye gidiyor
+      { name: 'GB', arrow: '↗' },  // Güneybatıdan esen
+      { name: 'B', arrow: '→' },   // Batıdan esen, doğuya gidiyor
+      { name: 'KB', arrow: '↘' }   // Kuzeybatıdan esen
     ]
     const index = Math.round(degrees / 45) % 8
     return `${directions[index].arrow} ${directions[index].name}`
   }
 
-  // Hava durumuna göre balık önerisi
+  // Hava durumuna göre balık önerisi - Genişletilmiş versiyon
   function getFishSuggestion(temp, windSpeed) {
-    if (temp < 10) {
+    // Çok soğuk hava (< 5°C)
+    if (temp < 5) {
       if (windSpeed < 10) {
         return {
-          fish: "Levrek, Mezgit aktif. Sakin hava, derin sulara git.",
-          bait: "11-14cm minnow, silikon balık (kırmızı/turuncu), canlı çupra"
+          fish: "Mezgit, Levrek (derin su), Kalkan aktif. Dip avı zamanı.",
+          bait: "Ağır silikon (turuncu/kırmızı), 18-25gr jig head, canlı çaça, derin minnow"
         }
       }
       return {
-        fish: "Soğuk ve rüzgarlı. Levrek sahile yaklaşabilir.",
-        bait: "Ağır jig head (14-21gr), derin çalışan minnow, silikon"
+        fish: "Zorlu koşullar. Mezgit ve İskorpit dipte bekliyor.",
+        bait: "Fosforlu silikon, ağır metal jig, canlı yem (kalamar parçası)"
       }
     }
-    if (temp >= 10 && temp < 18) {
+
+    // Soğuk hava (5-10°C)
+    if (temp >= 5 && temp < 10) {
+      if (windSpeed < 8) {
+        return {
+          fish: "Levrek, Mezgit, Çipura aktif. Sabah ve akşam üstü ideal.",
+          bait: "11-14cm suspending minnow, silikon shad (motor oil), canlı çupra"
+        }
+      }
       if (windSpeed < 15) {
         return {
-          fish: "İdeal! Levrek, Çupra, Lüfer aktif. Sabah-akşam saatleri mükemmel.",
-          bait: "11-14cm minnow, stick bait, popper, silikon balık, canlı kolyoz"
+          fish: "Levrek kıyılarda aktif! Lodos/Poyraz yemi kıyıya sürüklüyor.",
+          bait: "Derin çalışan minnow, ağır jig head (14-21gr), silikon balık"
         }
       }
       return {
-        fish: "Rüzgarlı ama üretken. Levrek kıyılarda, Lüfer sürü halinde.",
-        bait: "Yüzey poppers, 9-11cm minnow, silikon shad, metal jig"
+        fish: "Fırtınalı. Korunaklı limanlarda Levrek ve Kefal.",
+        bait: "Ağır silikon, canlı yem, ekmek (kefal için)"
       }
     }
-    if (temp >= 18) {
+
+    // Ilık hava (10-15°C) - İdeal sezon!
+    if (temp >= 10 && temp < 15) {
       if (windSpeed < 10) {
         return {
-          fish: "Sıcak ve sakin. Çupra, İstavrit, Kolyoz aktif. Gün batımını bekle.",
-          bait: "Küçük minnow (7-9cm), jig, sabiki, canlı karides"
+          fish: "ALTIN SEZON! Levrek, Çupra, Lüfer, Sinarit çok aktif.",
+          bait: "11-14cm minnow (doğal renkler), stick bait, popper, canlı kolyoz"
+        }
+      }
+      if (windSpeed < 20) {
+        return {
+          fish: "Levrek kayalıklarda, Lüfer yüzeyde sürü halinde, Palamut açıkta.",
+          bait: "Metal jig 20-40gr, popper, silikon shad, trolling için büyük minnow"
         }
       }
       return {
-        fish: "Sıcak ve rüzgarlı. Yüzey balıkları (Lüfer, İstavrit) aktif.",
-        bait: "Popper, stick bait, metal pilker, hızlı minnow"
+        fish: "Rüzgarlı ama verimli. Levrek sahile yanaşıyor, Lüfer aktif.",
+        bait: "Ağır metal jig, büyük silikon, derin minnow"
       }
     }
-    return {
-      fish: "Levrek, Çupra, Lüfer aktif olabilir.",
-      bait: "11-14cm minnow, silikon balık, popper"
+
+    // Ilık-sıcak (15-20°C)
+    if (temp >= 15 && temp < 20) {
+      if (windSpeed < 10) {
+        return {
+          fish: "Çupra, Levrek, Lüfer, Mercan, Fangri aktif. Gün batımı mükemmel!",
+          bait: "9-11cm minnow, popper, canlı karides, kalamar parçası"
+        }
+      }
+      if (windSpeed < 18) {
+        return {
+          fish: "Lüfer ve İstavrit yüzeyde çılgın! Palamut trolling için ideal.",
+          bait: "Popper, stick bait, sabiki, metal pilker 30-50gr"
+        }
+      }
+      return {
+        fish: "Dalgalı deniz. Kıyıda Levrek, açıkta Palamut.",
+        bait: "Ağır jig, büyük popper, trolling lure"
+      }
     }
+
+    // Sıcak hava (20-25°C)
+    if (temp >= 20 && temp < 25) {
+      if (windSpeed < 10) {
+        return {
+          fish: "Çupra, İstavrit, Kolyoz, Sardalya aktif. Erken sabah veya gece avı.",
+          bait: "Küçük minnow (7-9cm), micro jig, sabiki, canlı karides"
+        }
+      }
+      return {
+        fish: "Sıcak ve rüzgarlı. Yüzey balıkları (Lüfer, İstavrit, Kolyoz) aktif.",
+        bait: "Popper, küçük metal jig, sabiki takımı, stick bait"
+      }
+    }
+
+    // Çok sıcak (> 25°C)
+    if (temp >= 25) {
+      if (windSpeed < 8) {
+        return {
+          fish: "Çok sıcak! Gece avı veya derin su. Barbun, Mercan, Fangri dipte.",
+          bait: "Canlı yem (karides, kalamar), derin jig, gece için fosforlu"
+        }
+      }
+      return {
+        fish: "Sıcak ama rüzgarlı. Akşam saatlerinde İstavrit, Kolyoz aktif.",
+        bait: "Sabiki, micro jig, küçük popper"
+      }
+    }
+
+    return {
+      fish: "Levrek, Çupra, Lüfer, İstavrit aktif olabilir.",
+      bait: "11-14cm minnow, silikon balık, popper, metal jig"
+    }
+  }
+
+  // Ay fazına göre balık tavsiyesi
+  function getMoonFishSuggestion(phase) {
+    const suggestions = {
+      0: { // Yeni Ay
+        title: "Yeni Ay - En İyi Dönem!",
+        fish: "Levrek, Çupra, Lüfer, Palamut çok aktif",
+        tip: "Gece avı mükemmel. Balıklar karanlıkta avlanmak için yüzeye çıkar.",
+        bait: "Fosforlu silikon, glow minnow, canlı yem"
+      },
+      1: { // Hilal (büyüyen)
+        title: "Büyüyen Hilal - İyi Dönem",
+        fish: "Levrek, Mezgit, Çipura aktif",
+        tip: "Gün doğumu ve batımı en verimli saatler.",
+        bait: "Doğal renkli minnow, silikon shad, canlı çaça"
+      },
+      2: { // İlk Dördün
+        title: "İlk Dördün - Orta Aktivite",
+        fish: "Çupra, İstavrit, Barbun",
+        tip: "Sabah erken saatler daha verimli. Akşam aktivite düşer.",
+        bait: "Küçük minnow, sabiki, canlı karides"
+      },
+      3: { // Şişkin (dolunaya gidiş)
+        title: "Dolunaya Gidiş - Artan Aktivite",
+        fish: "Levrek, Lüfer, Kolyoz aktifleşiyor",
+        tip: "Akşam saatleri giderek daha verimli.",
+        bait: "Popper, stick bait, metal jig"
+      },
+      4: { // Dolunay
+        title: "Dolunay - Zirve Aktivite!",
+        fish: "TÜM BALIKLAR ÇOK AKTİF!",
+        tip: "Gece avı altın! Ay ışığında yüzey avı mükemmel. Sürüler yüzeyde.",
+        bait: "Yüzey yemler, popper, gümüş/beyaz minnow, canlı yem"
+      },
+      5: { // Şişkin (azalan)
+        title: "Dolunay Sonrası - Hala İyi",
+        fish: "Levrek, Çupra, Palamut aktif",
+        tip: "Gece avı hala verimli. Sabah da iyi sonuç verir.",
+        bait: "Minnow, silikon, trolling lure"
+      },
+      6: { // Son Dördün
+        title: "Son Dördün - Azalan Aktivite",
+        fish: "Mezgit, Barbun, İskorpit (dip balıkları)",
+        tip: "Dip avı daha verimli. Sabah erken saatler.",
+        bait: "Ağır jig, canlı yem, kalamar parçası"
+      },
+      7: { // Hilal (azalan)
+        title: "Azalan Hilal - Yeni Ay'a Hazırlık",
+        fish: "Levrek, Mezgit aktifleşmeye başlıyor",
+        tip: "Aktivite artmaya başlıyor. Gece avına hazırlan!",
+        bait: "Fosforlu yemler, derin minnow, silikon"
+      }
+    }
+    return suggestions[phase] || suggestions[0]
   }
 
   function getMoonPhaseForDate(date) {
@@ -1096,6 +1219,45 @@ export default function Home() {
                         {todaySolunar.minor2}
                       </div>
                     </div>
+                  </div>
+                </div>
+              )
+            })()}
+
+            {/* Ay Fazına Göre Balık Tavsiyesi */}
+            {(() => {
+              const todaySolunar = getSolunarData(new Date())
+              const moonTip = getMoonFishSuggestion(todaySolunar.phase)
+              return (
+                <div style={{
+                  background: 'white',
+                  borderRadius: '1rem',
+                  padding: '1rem',
+                  border: '1px solid #E2E8F0',
+                  marginBottom: '1rem'
+                }}>
+                  <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1E40AF', marginBottom: '1rem' }}>
+                    🐟 {moonTip.title}
+                  </h3>
+
+                  <div style={{ marginBottom: '0.75rem' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#64748B', marginBottom: '0.25rem' }}>Aktif Balıklar</div>
+                    <div style={{ fontWeight: '600', color: '#1E3A8A' }}>{moonTip.fish}</div>
+                  </div>
+
+                  <div style={{ marginBottom: '0.75rem' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#64748B', marginBottom: '0.25rem' }}>Tavsiye</div>
+                    <div style={{ fontSize: '0.875rem', color: '#475569' }}>{moonTip.tip}</div>
+                  </div>
+
+                  <div style={{
+                    background: '#F0FDF4',
+                    padding: '0.75rem',
+                    borderRadius: '0.5rem',
+                    borderLeft: '3px solid #22C55E'
+                  }}>
+                    <div style={{ fontSize: '0.75rem', color: '#166534', marginBottom: '0.25rem' }}>🎣 Önerilen Yemler</div>
+                    <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#166534' }}>{moonTip.bait}</div>
                   </div>
                 </div>
               )
