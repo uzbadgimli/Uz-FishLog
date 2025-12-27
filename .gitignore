@@ -25,6 +25,14 @@ yarn-error.log*
 .env*
 !.env.example
 
+# deployment & credentials
+PLESK_DEPLOYMENT.md
+*_CREDENTIALS*
+*_credentials*
+*.credentials
+*_SECRET*
+*_secret*
+
 # vercel
 .vercel
 

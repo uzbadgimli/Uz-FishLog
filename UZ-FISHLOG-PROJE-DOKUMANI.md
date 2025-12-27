@@ -28,7 +28,7 @@
   - Tutulan yer
   - Tarih ve saat seçimi (takvim + saat picker)
   - Notlar (olta takımı, yem, teknik detaylar)
-  
+
 - **Av Listesi Görünümü:**
   - Düzenli tablo formatı:
     - Üst satır: TÜR | BOY + AĞIRLIK
@@ -36,67 +36,77 @@
     - Notlar: Ayrı bölümde
   - Renk kodlu, okunabilir tasarım
 
-#### 3. **Hava & Deniz Durumu**
-- **Favori Lokasyonlar:**
-  - Kumbağ, Şile, Hereke, İzmit Körfezi
-  - Buton ile hızlı seçim
-  
-- **Detaylı Hava Bilgisi:**
-  - Anlık durum (sıcaklık, rüzgar, yön)
+#### 3. **Hava & Deniz Durumu** ✅
+- **Favori / Harita Toggle:**
+  - ⭐ Favoriler modu - Sabit lokasyonlardan seçim
+  - 🗺️ Haritadan Seç modu - İnteraktif harita
+
+- **6 Sabit Favori Lokasyon:**
+  - Kumbağ (Tekirdağ - Marmara)
+  - Altınova (Yalova - Marmara)
+  - NATO Limanı (İzmit - Marmara)
+  - Pendik (İstanbul - Marmara)
+  - Şile (İstanbul - Karadeniz)
+  - Atakum (Samsun - Karadeniz)
+
+- **Leaflet Harita Entegrasyonu:**
+  - Marmara ve Karadeniz bölgesi görünümü
+  - Tıklama ile konum seçme
+  - Koyu/açık tema desteği
+  - Özel marker tasarımı
+
+- **Kullanıcı Favorileri (Supabase):**
+  - Haritadan seçilen konumu kaydetme
+  - Kaydedilen favoriler listesi
+  - Favori silme özelliği
+
+- **Detaylı Hava Bilgisi (6 Kart):**
+  - Sıcaklık, Rüzgar, Yön
+  - Dalga, Nem, Basınç
   - 7 günlük tahmin
   - Gün doğumu/batımı saatleri
-  
+
 - **Balık & Yem Tavsiyeleri:** Seçilen lokasyon için özelleştirilmiş
 
-#### 4. **Profil Tab**
-- Genel bilgiler
-- Ayarlar placeholder'ları
-
----
-
-## 🚧 Geliştirme Aşamasında
-
-### Planlanan Özellikler
-
-#### 1. **Hava & Deniz Tab - Gelişmiş**
-- [ ] **Leaflet Harita Entegrasyonu**
-  - İnteraktif harita
-  - Haritaya tıklayarak konum seçimi
-  - Marker'lar ile favori yerler
-  
-- [ ] **Gelişmiş Deniz Durumu**
-  - Dalga yüksekliği detayları
-  - Akıntı bilgisi
-  - Deniz suyu sıcaklığı
-
-#### 2. **Balık Aktivite Takvimi** ✅
-- [x] **Ay Fazları Takvimi**
+#### 4. **Balık Aktivite Takvimi** ✅
+- **Ay Fazları Takvimi**
   - Görsel ay fazı gösterimi (emoji)
   - 18 günlük takvim görünümü
   - Tıklanabilir günler ve detay kartı
   - Ay doğumu/batımı saatleri
 
-- [x] **Solunar Aktivite**
+- **Solunar Aktivite**
   - Major/Minor periyotlar (yeşil/sarı kutular)
-  - Balık aktivite skoru (1-10) + progress bar
+  - Balık aktivite skoru (1-10) - Gerçek solunar hesaplama
   - En iyi avlanma saatleri önerisi
   - Solunar teorisi bilgi notu
 
-#### 3. **Analiz & İstatistikler** ✅
-- [x] **Genel Bakış:**
+#### 5. **Analiz & İstatistikler** ✅
+- **Genel Bakış:**
   - Toplam av, farklı tür, farklı yer sayıları
   - Boy/ağırlık istatistikleri (en büyük, ortalama)
 
-- [x] **Grafikler:**
+- **Grafikler:**
   - Tür dağılımı (bar chart)
   - Saat dağılımı (sabah/öğlen/akşam/gece)
 
-- [x] **En Başarılı:**
+- **En Başarılı:**
   - Yerler sıralaması (madalyalı liste)
   - Zaman dilimi analizi
 
-#### 4. **Çok Kullanıcılı Sistem**
+#### 6. **Dark/Light Tema** ✅
+- Üst barda tema değiştirme butonu (güneş/ay emoji)
+- Koyu tema: Göz yormayan koyu mavi tonları (#0F172A, #1E293B)
+- Açık tema: Temiz beyaz tonları
+- Tüm sayfalarda uyumlu çalışıyor
+
+---
+
+## 🚧 Planlanan Özellikler
+
+### Çok Kullanıcılı Sistem
 - [ ] Login/Register sistemi
+- [ ] Kullanıcı bazlı favori lokasyonlar
 - [ ] Kullanıcı profilleri
 - [ ] Sosyal özellikler (opsiyonel)
 
@@ -110,7 +120,7 @@
 - **Framework:** Next.js 16.1.1 (App Router)
 - **Dil:** JavaScript (React)
 - **Styling:** CSS Modules + Inline Styles
-- **Harita:** Leaflet + React-Leaflet (entegrasyon devam ediyor)
+- **Harita:** Leaflet + React-Leaflet v5.0.0
 
 **Backend & Database:**
 - **Database:** Supabase (PostgreSQL)
@@ -134,10 +144,12 @@
 ```
 uz-fishlog/
 ├── app/
-│   ├── page.js              # Ana component
+│   ├── page.js              # Ana component (~1900 satır)
 │   ├── layout.js            # Root layout
 │   ├── globals.css          # Global stiller
-│   └── FishLog.module.css   # Component stilleri
+│   ├── FishLog.module.css   # Component stilleri
+│   └── components/
+│       └── MapComponent.js  # Leaflet harita component
 ├── lib/
 │   └── supabase.js          # Supabase client
 ├── public/                  # Statik dosyalar
@@ -166,24 +178,47 @@ CREATE TABLE catches (
 );
 ```
 
+### Fav Places Tablosu ✅
+
+```sql
+CREATE TABLE fav_places (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  lat DECIMAL(10, 6) NOT NULL,
+  lon DECIMAL(10, 6) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- RLS Policy
+ALTER TABLE fav_places ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all operations" ON fav_places
+  FOR ALL USING (true) WITH CHECK (true);
+```
+
 ---
 
 ## 🎨 Tasarım Sistemi
 
 ### Renk Paleti
 
-**Ana Renkler:**
+**Açık Tema:**
 - Lacivert: `#1E3A8A` (başlıklar)
 - Koyu Mavi: `#1E40AF` (butonlar, vurgular)
+- Arka Plan: `#F8FAFC`
+- Kart: `white`
+
+**Koyu Tema:**
+- Arka Plan: `#0F172A`
+- Kart: `#1E293B`
+- Border: `#334155`
+- Text: `#F1F5F9`
+- Accent Mavi: `#60A5FA`
+- Secondary: `#94A3B8`
 
 **Vurgu Renkleri:**
 - Soluk Turuncu: `#FB923C` (önemli bilgiler)
-- Açık Turuncu: `#FDBA74` (hover)
-
-**Destek Renkleri:**
-- Yeşil: `#34D399` (başarı)
-- Mavi-yeşil: `#22D3EE` (deniz teması)
-- Gri tonları: `#F8FAFC`, `#E2E8F0`, `#64748B`
+- Yeşil: `#34D399` (başarı, major period)
+- Sarı: `#FBBF24` (minor period)
 
 ### Tipografi
 - Başlıklar: Bold, 1.125rem - 1.5rem
@@ -217,9 +252,7 @@ git push origin main
 1. Plesk > Git sekmesi > **Pull**
 2. Dosya Yöneticisi > `out` klasörü
 3. `out` içindeki tüm dosyaları `httpdocs` içine taşı
-4. Tarayıcıda test: `http://falancayer.com.`
-
-**Not:** DNS yayılımı 24-48 saat sürebilir
+4. Tarayıcıda test: `http://falancayer.com`
 
 ---
 
@@ -237,15 +270,15 @@ git push origin main
    - Statik HTML/CSS/JS export daha güvenilir
    - `next.config.js` > `output: 'export'`
 
-3. **Leaflet Entegrasyonu**
-   - `react-leaflet` kuruldu
-   - Dynamic import kullanılıyor (SSR hatası önlemi)
-   - Harita click event'leri üzerinde çalışılıyor
+3. **Solunar Hesaplama Gerçek Formülle**
+   - Math.random() yerine ay yaşına dayalı deterministik hesaplama
+   - Yeni Ay/Dolunay = 9-10 skor
+   - Dördünler = 4-5 skor
+   - Ara günler = 6-8 skor
 
-### Bilinen Sorunlar
-
-- [ ] Leaflet harita click event çalışmıyor
-- [ ] DNS tam yayılmadı (falancayer.com yerine falancayer.com. kullanılıyor)
+4. **Leaflet Dynamic Import**
+   - SSR hatalarını önlemek için `next/dynamic` kullanıldı
+   - MapComponent ayrı dosyada
 
 ### Çözülen Sorunlar
 
@@ -254,30 +287,15 @@ git push origin main
 - ✅ Form input büyüklükleri → Inline style ile çözüldü
 - ✅ Av listesi düzeni → Grid layout ile düzenlendi
 - ✅ Hava durumu API → OpenMeteo entegre edildi
-
----
-
-## 👥 Kullanıcı Profili
-
-**Hedef Kullanıcı:** Uzbad + Balıkçı Arkadaşlar
-
-**Kullanım Senaryoları:**
-1. Av sonrası kayıt tutma
-2. Gitmeden önce hava kontrolü
-3. Geçmiş avları analiz etme
-4. En verimli yerler/zamanları bulma
-
-**Beklentiler:**
-- Profesyonel görünüm
-- Hızlı ve kullanışlı
-- Mobil uyumlu
-- Gerçekten işe yarar bilgiler
+- ✅ Solunar rastgele skor → Gerçek hesaplama formülü
+- ✅ Dark mode uyumsuzlukları → Tüm sayfalar tema desteği
+- ✅ Leaflet SSR hatası → Dynamic import ile çözüldü
 
 ---
 
 ## 🎣 Balık & Yem Veri Tabanı
 
-### Marmara Denizi Hedef Balıklar
+### Marmara & Karadeniz Hedef Balıklar
 
 1. **Levrek** - Minnow (11-14cm), silikon, canlı yem
 2. **Çupra** - Küçük minnow (7-9cm), canlı karides
@@ -287,6 +305,7 @@ git push origin main
 6. **Mezgit** - Silikon, canlı yem
 7. **Hamsi** - İğne takımı
 8. **Kolyoz** - Sabiki
+9. **İskorpit** - Fosforlu silikon, canlı yem
 
 ### Hava Durumu - Balık İlişkisi
 
@@ -305,20 +324,42 @@ git push origin main
 - Gün batımı önemli
 - Küçük yemler tercih et
 
----
-
-## 📞 İletişim & Destek
-
-**Geliştirici:** UZ FishLog Team (Uzbad)
-**Versiyon:** 1.2.0
-**Son Güncelleme:** 27 Aralık 2025
-
-**GitHub:** https://github.com/uzbadgimli/Uz-FishLog
-**Domain:** http://falancayer.com.
+**Rüzgarlı (> 25 km/s):**
+- Zorlu koşullar
+- Mezgit ve İskorpit dipte bekliyor
+- Fosforlu silikon, ağır metal jig, kalamar parçası
 
 ---
 
 ## 🔄 Versiyon Geçmişi
+
+### v1.4.0 (27 Aralık 2025) - Güncel
+- ✅ **Leaflet Harita Entegrasyonu**
+  - Favori/Harita toggle seçimi
+  - İnteraktif harita (Marmara + Karadeniz)
+  - Tıklama ile konum seçme
+  - Koyu/açık tema harita desteği
+- ✅ **Kullanıcı Favorileri (Supabase)**
+  - Haritadan favori kaydetme
+  - Favori listesi görüntüleme
+  - Favori silme özelliği
+  - fav_places tablosu
+- ✅ **Harita Konum Bilgisi**
+  - 6 bilgi kartı (sıcaklık, rüzgar, yön, dalga, nem, basınç)
+  - Balık & yem tavsiyesi
+
+### v1.3.0 (27 Aralık 2025)
+- ✅ Dark/Light Tema Desteği
+  - Tüm sayfalar koyu tema uyumlu
+  - Göz yormayan renk paleti
+  - Tema toggle butonu
+- ✅ Solunar Skorları Gerçek Hesaplama
+  - Math.random() kaldırıldı
+  - Ay yaşına dayalı deterministik formül
+- ✅ Hava Tabı Güncelleme
+  - 6 favori lokasyon (gerçek koordinatlar)
+  - 6 bilgi kartı (sıcaklık, rüzgar, yön, dalga, nem, basınç)
+  - Balık + yem tavsiyesi her lokasyonda
 
 ### v1.2.0 (27 Aralık 2025)
 - ✅ Balık Aktivite Takvimi (Ay Fazları)
@@ -353,20 +394,30 @@ git push origin main
 ## 📚 Gelecek Adımlar
 
 ### Kısa Vadeli
-1. Leaflet harita click event düzeltme (favori kaydetme)
-2. Mobil responsive testler
-3. Av silme/düzenleme özelliği
+1. Mobil responsive testler
+2. Av silme/düzenleme özelliği
 
 ### Orta Vadeli
 1. Çok kullanıcılı sistem (login)
-2. Fotoğraf yükleme
-3. Favori lokasyonlar kaydetme (haritadan)
+2. Kullanıcı bazlı favori yerler
+3. Fotoğraf yükleme
 
-### Uzun Vadeli (3+ Ay)
-1. Sosyal özellikler (opsiyonel)
-2. Mobil uygulama (PWA)
-3. Offline destek
-4. Bildirim sistemi
+### Uzun Vadeli
+1. PWA desteği
+2. Offline mod
+3. Bildirim sistemi
+4. Sosyal özellikler
+
+---
+
+## 👥 Proje Bilgileri
+
+**Geliştirici:** UZ FishLog Team (Uzbad)
+**Versiyon:** 1.4.0
+**Son Güncelleme:** 27 Aralık 2025
+
+**GitHub:** https://github.com/uzbadgimli/Uz-FishLog
+**Domain:** http://falancayer.com
 
 ---
 

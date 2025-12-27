@@ -1,8 +1,27 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { supabase } from '@/lib/supabase'
 import styles from './FishLog.module.css'
+
+// Leaflet harita - SSR hatası önlemi için dynamic import
+const MapComponent = dynamic(() => import('./components/MapComponent'), {
+  ssr: false,
+  loading: () => (
+    <div style={{
+      width: '100%',
+      height: '300px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: '#1E293B',
+      borderRadius: '0.75rem'
+    }}>
+      <span style={{ color: '#94A3B8' }}>Harita yükleniyor...</span>
+    </div>
+  )
+})
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('home')
@@ -29,6 +48,12 @@ export default function Home() {
   // Hava & Deniz tab için
   const [selectedLocation, setSelectedLocation] = useState(null)
   const [weatherData, setWeatherData] = useState(null)
+  const [weatherMode, setWeatherMode] = useState('favorites') // 'favorites' veya 'map'
+  const [mapClickedLocation, setMapClickedLocation] = useState(null)
+  const [showSaveFavoriteModal, setShowSaveFavoriteModal] = useState(false)
+  const [newFavoriteName, setNewFavoriteName] = useState('')
+  const [userFavorites, setUserFavorites] = useState([])
+  const [savingFavorite, setSavingFavorite] = useState(false)
 
   // Lunar tab için
   const [selectedDay, setSelectedDay] = useState(null)
@@ -41,6 +66,73 @@ export default function Home() {
   const [notes, setNotes] = useState('')
   const [huntDate, setHuntDate] = useState(new Date().toISOString().split('T')[0])
   const [huntTime, setHuntTime] = useState(new Date().toTimeString().slice(0, 5))
+
+  // Kullanıcı favorilerini yükle
+  async function fetchUserFavorites() {
+    try {
+      const { data, error } = await supabase
+        .from('fav_places')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setUserFavorites(data || [])
+    } catch (error) {
+      console.error('Favoriler yüklenemedi:', error)
+    }
+  }
+
+  // Yeni favori kaydet
+  async function saveFavorite() {
+    if (!newFavoriteName.trim() || !mapClickedLocation) return
+
+    setSavingFavorite(true)
+    try {
+      const { data, error } = await supabase
+        .from('fav_places')
+        .insert([{
+          name: newFavoriteName.trim(),
+          lat: mapClickedLocation.lat,
+          lon: mapClickedLocation.lon
+        }])
+        .select()
+
+      if (error) throw error
+
+      // Listeyi güncelle
+      await fetchUserFavorites()
+
+      // Modal'ı kapat
+      setShowSaveFavoriteModal(false)
+      setNewFavoriteName('')
+
+    } catch (error) {
+      console.error('Favori kaydedilemedi:', error)
+      alert('Favori kaydedilemedi: ' + error.message)
+    } finally {
+      setSavingFavorite(false)
+    }
+  }
+
+  // Favori sil
+  async function deleteFavorite(id) {
+    if (!confirm('Bu favoriyi silmek istediğinize emin misiniz?')) return
+
+    try {
+      const { error } = await supabase
+        .from('fav_places')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+
+      // Listeyi güncelle
+      await fetchUserFavorites()
+    } catch (error) {
+      console.error('Favori silinemedi:', error)
+      alert('Favori silinemedi: ' + error.message)
+    }
+  }
 
   async function fetchWeather() {
     try {
@@ -81,6 +173,7 @@ export default function Home() {
   useEffect(() => {
     fetchCatches()
     fetchWeather()
+    fetchUserFavorites()
   }, [])
 
   async function addCatch(e) {
@@ -940,27 +1033,79 @@ export default function Home() {
           <div>
             <div className={styles.pageTitle}>
               <h2 style={{ color: theme.text }}>🌊 Hava & Deniz Durumu</h2>
-              <p style={{ color: theme.textSecondary }}>Favori yerlerden seç</p>
+              <p style={{ color: theme.textSecondary }}>
+                {weatherMode === 'favorites' ? 'Favori yerlerden seç' : 'Haritadan konum seç'}
+              </p>
             </div>
 
-            {/* Favori Lokasyonlar - 6 adet gerçek koordinatlarla */}
+            {/* Favori / Harita Toggle */}
             <div style={{
-              marginBottom: '1rem',
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '0.5rem'
+              display: 'flex',
+              gap: '0.5rem',
+              marginBottom: '1rem'
             }}>
-              {[
-                { name: 'Kumbağ', lat: 40.8867, lon: 27.4547 },      // Tekirdağ - Marmara
-                { name: 'Altınova', lat: 40.7000, lon: 29.5000 },    // Yalova - Marmara
-                { name: 'NATO Limanı', lat: 40.7697, lon: 29.4547 }, // İzmit - Marmara
-                { name: 'Pendik', lat: 40.8761, lon: 29.2336 },      // İstanbul - Marmara
-                { name: 'Şile', lat: 41.1764, lon: 29.6094 },        // İstanbul - Karadeniz
-                { name: 'Atakum', lat: 41.3289, lon: 36.2792 }       // Samsun - Karadeniz
-              ].map((loc) => (
-                <button
-                  key={loc.name}
-                  onClick={() => {
+              <button
+                onClick={() => {
+                  setWeatherMode('favorites')
+                  setMapClickedLocation(null)
+                }}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  background: weatherMode === 'favorites' ? '#1E40AF' : (isDarkMode ? '#334155' : 'white'),
+                  color: weatherMode === 'favorites' ? 'white' : (isDarkMode ? '#60A5FA' : '#1E40AF'),
+                  border: `2px solid ${isDarkMode ? '#60A5FA' : '#1E40AF'}`,
+                  borderRadius: '0.75rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                ⭐ Favoriler
+              </button>
+              <button
+                onClick={() => {
+                  setWeatherMode('map')
+                  setSelectedLocation(null)
+                  setWeatherData(null)
+                }}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  background: weatherMode === 'map' ? '#1E40AF' : (isDarkMode ? '#334155' : 'white'),
+                  color: weatherMode === 'map' ? 'white' : (isDarkMode ? '#60A5FA' : '#1E40AF'),
+                  border: `2px solid ${isDarkMode ? '#60A5FA' : '#1E40AF'}`,
+                  borderRadius: '0.75rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                🗺️ Haritadan Seç
+              </button>
+            </div>
+
+            {/* Favoriler Modu */}
+            {weatherMode === 'favorites' && (
+              <>
+                {/* Favori Lokasyonlar - 6 adet gerçek koordinatlarla */}
+                <div style={{
+                  marginBottom: '1rem',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '0.5rem'
+                }}>
+                  {[
+                    { name: 'Kumbağ', lat: 40.8867, lon: 27.4547 },
+                    { name: 'Altınova', lat: 40.7000, lon: 29.5000 },
+                    { name: 'NATO Limanı', lat: 40.7697, lon: 29.4547 },
+                    { name: 'Pendik', lat: 40.8761, lon: 29.2336 },
+                    { name: 'Şile', lat: 41.1764, lon: 29.6094 },
+                    { name: 'Atakum', lat: 41.3289, lon: 36.2792 }
+                  ].map((loc) => (
+                    <button
+                      key={loc.name}
+                      onClick={() => {
                     setSelectedLocation(loc)
                     fetchWeatherForLocation(loc.lat, loc.lon)
                   }}
@@ -979,10 +1124,79 @@ export default function Home() {
                   📍 {loc.name}
                 </button>
               ))}
-            </div>
+                </div>
 
-            {/* Detaylı Hava Durumu */}
-            {selectedLocation && weatherData && (
+                {/* Kullanıcı Favorileri */}
+                {userFavorites.length > 0 && (
+                  <div style={{ marginBottom: '1rem' }}>
+                    <h4 style={{
+                      color: theme.textSecondary,
+                      fontSize: '0.875rem',
+                      marginBottom: '0.5rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}>
+                      ⭐ Kaydedilen Favoriler
+                    </h4>
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.5rem'
+                    }}>
+                      {userFavorites.map((fav) => (
+                        <div
+                          key={fav.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
+                          }}
+                        >
+                          <button
+                            onClick={() => {
+                              setSelectedLocation({ name: fav.name, lat: fav.lat, lon: fav.lon })
+                              fetchWeatherForLocation(fav.lat, fav.lon)
+                            }}
+                            style={{
+                              flex: 1,
+                              padding: '0.75rem',
+                              background: selectedLocation?.name === fav.name ? '#1E40AF' : (isDarkMode ? '#334155' : 'white'),
+                              color: selectedLocation?.name === fav.name ? 'white' : (isDarkMode ? '#60A5FA' : '#1E40AF'),
+                              border: `2px solid ${selectedLocation?.name === fav.name ? '#1E40AF' : (isDarkMode ? '#60A5FA' : '#1E40AF')}`,
+                              borderRadius: '0.75rem',
+                              fontWeight: 'bold',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s',
+                              fontSize: '0.875rem',
+                              textAlign: 'left'
+                            }}
+                          >
+                            ⭐ {fav.name}
+                          </button>
+                          <button
+                            onClick={() => deleteFavorite(fav.id)}
+                            style={{
+                              padding: '0.75rem',
+                              background: isDarkMode ? '#7F1D1D' : '#FEE2E2',
+                              color: isDarkMode ? '#FCA5A5' : '#DC2626',
+                              border: 'none',
+                              borderRadius: '0.75rem',
+                              cursor: 'pointer',
+                              fontSize: '1rem'
+                            }}
+                            title="Sil"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Detaylı Hava Durumu */}
+                {selectedLocation && weatherData && (
               <div>
                 {/* Ana Hava Kartı - 6 Bilgi */}
                 <div style={{
@@ -1133,18 +1347,255 @@ export default function Home() {
                     </div>
                   </div>
                 )}
-              </div>
+                </div>
+                )}
+
+                {!selectedLocation && (
+                  <div style={{ textAlign: 'center', padding: '3rem 1rem', background: theme.cardBg, borderRadius: '1rem', border: `1px solid ${theme.cardBorder}` }}>
+                    <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>📍</div>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: theme.text, marginBottom: '0.5rem' }}>
+                      Bir Lokasyon Seç
+                    </h3>
+                    <p style={{ color: theme.textSecondary }}>
+                      Yukarıdaki butonlardan favori yerini seç
+                    </p>
+                  </div>
+                )}
+              </>
             )}
 
-            {!selectedLocation && (
-              <div style={{ textAlign: 'center', padding: '3rem 1rem', background: theme.cardBg, borderRadius: '1rem', border: `1px solid ${theme.cardBorder}` }}>
-                <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🗺️</div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: theme.text, marginBottom: '0.5rem' }}>
-                  Bir Lokasyon Seç
-                </h3>
-                <p style={{ color: theme.textSecondary }}>
-                  Yukarıdaki butonlardan favori yerini seç
-                </p>
+            {/* Harita Modu */}
+            {weatherMode === 'map' && (
+              <div>
+                {/* Harita Container */}
+                <div style={{
+                  background: theme.cardBg,
+                  borderRadius: '1rem',
+                  padding: '1rem',
+                  border: `1px solid ${theme.cardBorder}`,
+                  marginBottom: '1rem'
+                }}>
+                  <div style={{
+                    height: '300px',
+                    borderRadius: '0.75rem',
+                    overflow: 'hidden',
+                    position: 'relative'
+                  }}>
+                    <MapComponent
+                      isDarkMode={isDarkMode}
+                      onLocationSelect={(lat, lon) => {
+                        setMapClickedLocation({ lat, lon })
+                        fetchWeatherForLocation(lat, lon)
+                      }}
+                      mapClickedLocation={mapClickedLocation}
+                    />
+                  </div>
+                  <p style={{ fontSize: '0.75rem', color: theme.textSecondary, marginTop: '0.5rem', textAlign: 'center' }}>
+                    Haritaya tıklayarak konum seç
+                  </p>
+                </div>
+
+                {/* Seçilen Konum Bilgisi */}
+                {mapClickedLocation && weatherData && (
+                  <div>
+                    {/* Favori Kaydet Butonu */}
+                    <div style={{ marginBottom: '1rem' }}>
+                      <button
+                        onClick={() => setShowSaveFavoriteModal(true)}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: isDarkMode ? '#166534' : '#22C55E',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '0.75rem',
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.5rem'
+                        }}
+                      >
+                        ⭐ Bu Konumu Favorilere Ekle
+                      </button>
+                    </div>
+
+                    {/* Hava Bilgi Kartı */}
+                    <div style={{
+                      background: theme.cardBg,
+                      borderRadius: '1rem',
+                      padding: '1.5rem',
+                      border: `1px solid ${theme.cardBorder}`,
+                      marginBottom: '1rem'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: theme.text }}>
+                          📍 {mapClickedLocation.lat.toFixed(4)}, {mapClickedLocation.lon.toFixed(4)}
+                        </h3>
+                        <div style={{ fontSize: '2.5rem' }}>
+                          {getWeatherIcon(weatherData.current.weather_code)}
+                        </div>
+                      </div>
+
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr 1fr',
+                        gap: '0.75rem'
+                      }}>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
+                            {Math.round(weatherData.current.temperature_2m)}°C
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Sıcaklık</div>
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
+                            {Math.round(weatherData.current.wind_speed_10m)}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Rüzgar (km/s)</div>
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
+                            {getWindDirection(weatherData.current.wind_direction_10m)}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Yön</div>
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
+                            {weatherData.marine?.wave_height?.[0]
+                              ? `${Math.round(weatherData.marine.wave_height[0] * 100)}cm`
+                              : '0cm'}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Dalga</div>
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
+                            {Math.round(weatherData.current.relative_humidity_2m)}%
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Nem</div>
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
+                            {Math.round(weatherData.current.pressure_msl)}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Basınç</div>
+                        </div>
+                      </div>
+
+                      {/* Bu Havada Hangi Balık? */}
+                      <div style={{
+                        marginTop: '1rem',
+                        padding: '1rem',
+                        background: isDarkMode ? '#334155' : '#EFF6FF',
+                        borderRadius: '0.75rem'
+                      }}>
+                        <h4 style={{ color: theme.text, marginBottom: '0.5rem' }}>🐟 Bu Havada Hangi Balık?</h4>
+                        <p style={{ marginBottom: '0.75rem', color: isDarkMode ? '#CBD5E1' : '#475569' }}>
+                          {getFishSuggestion(weatherData.current.temperature_2m, weatherData.current.wind_speed_10m).fish}
+                        </p>
+                        <div style={{
+                          paddingTop: '0.75rem',
+                          borderTop: `1px solid ${isDarkMode ? '#475569' : 'rgba(30, 64, 175, 0.2)'}`
+                        }}>
+                          <strong style={{ fontSize: '0.875rem', color: theme.text }}>🎣 Tavsiye Yem:</strong>
+                          <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: isDarkMode ? '#CBD5E1' : '#475569' }}>
+                            {getFishSuggestion(weatherData.current.temperature_2m, weatherData.current.wind_speed_10m).bait}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Haritaya tıklanmadığında */}
+                {!mapClickedLocation && (
+                  <div style={{ textAlign: 'center', padding: '2rem 1rem', background: theme.cardBg, borderRadius: '1rem', border: `1px solid ${theme.cardBorder}` }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>👆</div>
+                    <p style={{ color: theme.textSecondary }}>
+                      Haritaya tıklayarak konum seç
+                    </p>
+                  </div>
+                )}
+
+                {/* Favori Kaydetme Modal */}
+                {showSaveFavoriteModal && (
+                  <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000,
+                    padding: '1rem'
+                  }}>
+                    <div style={{
+                      background: theme.cardBg,
+                      borderRadius: '1rem',
+                      padding: '1.5rem',
+                      width: '100%',
+                      maxWidth: '320px'
+                    }}>
+                      <h3 style={{ color: theme.text, marginBottom: '1rem' }}>⭐ Favoriye Ekle</h3>
+                      <input
+                        type="text"
+                        placeholder="Konum adı (örn: Gizli Koy)"
+                        value={newFavoriteName}
+                        onChange={(e) => setNewFavoriteName(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          borderRadius: '0.5rem',
+                          border: `1px solid ${theme.cardBorder}`,
+                          background: theme.inputBg,
+                          color: theme.text,
+                          marginBottom: '1rem',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button
+                          onClick={() => {
+                            setShowSaveFavoriteModal(false)
+                            setNewFavoriteName('')
+                          }}
+                          style={{
+                            flex: 1,
+                            padding: '0.75rem',
+                            background: isDarkMode ? '#475569' : '#E2E8F0',
+                            color: isDarkMode ? '#F1F5F9' : '#1E3A8A',
+                            border: 'none',
+                            borderRadius: '0.5rem',
+                            fontWeight: 'bold',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          İptal
+                        </button>
+                        <button
+                          onClick={saveFavorite}
+                          disabled={savingFavorite || !newFavoriteName.trim()}
+                          style={{
+                            flex: 1,
+                            padding: '0.75rem',
+                            background: savingFavorite || !newFavoriteName.trim() ? '#9CA3AF' : '#22C55E',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '0.5rem',
+                            fontWeight: 'bold',
+                            cursor: savingFavorite || !newFavoriteName.trim() ? 'not-allowed' : 'pointer'
+                          }}
+                        >
+                          {savingFavorite ? 'Kaydediliyor...' : 'Kaydet'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
