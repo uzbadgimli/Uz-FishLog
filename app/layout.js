@@ -1,4 +1,5 @@
 import "./globals.css";
+import Providers from "./components/Providers";
 
 export const metadata = {
   title: "UZ FishLog - Balık Avı Takip",
@@ -29,7 +30,9 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-title" content="UZ FishLog" />
       </head>
       <body className="antialiased">
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );
