@@ -102,13 +102,91 @@
 
 ---
 
+#### 7. **Kullanıcı Kimlik Doğrulama (Authentication)** ✅
+- **Supabase Auth Entegrasyonu:**
+  - Email/Password ile kayıt ve giriş
+  - Google OAuth desteği (opsiyonel)
+  - Oturum yönetimi (session management)
+- **Tab Bazlı Erişim Kontrolü:**
+  - Ana Sayfa: Herkese açık
+  - Avlarım: Giriş gerekli (kullanıcı bazlı veriler)
+  - Hava & Deniz: Giriş gerekli
+  - Aktivite: Giriş gerekli
+  - Analiz: Giriş gerekli (kullanıcı bazlı istatistikler)
+- **Kullanıcı Bazlı Veri İzolasyonu:**
+  - Her kullanıcı sadece kendi avlarını görür
+  - Supabase RLS (Row Level Security) ile güvenlik
+
+---
+
+## 🏗️ Mimari ve Modüler Yapı
+
+### Komponent Organizasyonu ✅
+
+**Ana Dosya Yapısı:**
+```
+app/
+├── page.js                    # Ana sayfa (~385 satır - state yönetimi)
+├── FishLog.module.css         # Tüm stiller
+├── components/
+│   ├── layout/
+│   │   ├── Header.js          # Üst başlık (tema, ay fazı, kullanıcı)
+│   │   └── TabNav.js          # Alt navigasyon (sticky)
+│   ├── tabs/
+│   │   ├── HomeTab.js         # Ana sayfa içeriği
+│   │   ├── CatchesTab.js      # Av kayıtları
+│   │   ├── WeatherTab.js      # Hava durumu + harita
+│   │   ├── LunarTab.js        # Ay takvimi + solunar
+│   │   └── StatsTab.js        # İstatistikler
+│   ├── modals/
+│   │   └── AuthModal.js       # Giriş/Kayıt modalı
+│   └── map/
+│       └── MapComponent.js    # Leaflet harita (dynamic import)
+└── utils/
+    ├── fishSuggestions.js     # Balık/yem önerileri (50+ senaryo)
+    ├── moonPhase.js           # Ay fazı hesaplamaları
+    └── supabase.js            # Supabase client
+```
+
+**Refactoring Özeti:**
+- page.js: ~1900 satırdan ~385 satıra düşürüldü
+- 5 tab komponenti oluşturuldu (props-based, Context kullanılmadı)
+- Her tab bağımsız ve test edilebilir
+
+---
+
+## 🐟 Balık & Yem Öneri Sistemi
+
+### Gelişmiş Öneri Algoritması ✅
+
+**Toplam 50+ Senaryo:**
+- 4 Mevsim (İlkbahar, Yaz, Sonbahar, Kış)
+- 4 Zaman Dilimi (Sabah, Öğlen, Akşam, Gece)
+- Sıcaklık aralıkları
+- Rüzgar hızı değerlendirmesi
+- Basınç değişimleri
+
+**Örnek Senaryolar:**
+- İlkbahar sabahı + düşük rüzgar → Levrek, Çipura aktif
+- Yaz akşamı + sıcak → Lüfer, Palamut yüzeyde
+- Kış gecesi + yüksek basınç → Karagöz, Mercan derinde
+- Fırtına öncesi → Tüm balıklar agresif besleniyor
+
+**Ay Fazına Göre Öneriler:**
+- Dolunay: Gece avı için ideal
+- Yeni ay: Gündüz aktivitesi yüksek
+- Hilal dönemleri: Gün doğumu/batımı en verimli
+
+---
+
 ## 🚧 Planlanan Özellikler
 
-### Çok Kullanıcılı Sistem
-- [ ] Login/Register sistemi
-- [ ] Kullanıcı bazlı favori lokasyonlar
-- [ ] Kullanıcı profilleri
-- [ ] Sosyal özellikler (opsiyonel)
+### Gelecek Geliştirmeler
+- [ ] Av silme/düzenleme özelliği
+- [ ] Fotoğraf ekleme (Supabase Storage)
+- [ ] Sosyal özellikler (paylaşım, liderlik tablosu)
+- [ ] PWA desteği (offline çalışma)
+- [ ] Push bildirimleri (ideal av zamanları)
 
 ---
 
@@ -128,10 +206,13 @@
 
 **API'ler:**
 - **Hava Durumu:** OpenMeteo API (ücretsiz, API key gerektirmez)
-  - Sıcaklık, rüzgar, nem, basınç
-  - Deniz durumu (dalga)
+  - `api.open-meteo.com` - Sıcaklık, rüzgar, nem, basınç
   - 7 günlük tahmin
   - Gün doğumu/batımı
+- **Deniz Durumu:** OpenMeteo Marine API
+  - `marine-api.open-meteo.com` - Ayrı endpoint
+  - Dalga yüksekliği, dalga periyodu, swell yüksekliği
+  - Kara noktalarında otomatik fallback
 
 **Deployment:**
 - **Hosting:** Plesk (turkticaret.net)
@@ -148,6 +229,7 @@
 ```sql
 CREATE TABLE catches (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id),  -- Kullanıcı ID (Supabase Auth)
   species TEXT NOT NULL,           -- Balık türü
   length_cm INTEGER NOT NULL,      -- Boy (cm)
   weight_gr INTEGER,               -- Ağırlık (gr) - opsiyonel
@@ -156,6 +238,11 @@ CREATE TABLE catches (
   hunt_date TIMESTAMP,             -- Av tarihi ve saati
   created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- RLS Policy (kullanıcı bazlı erişim)
+ALTER TABLE catches ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can CRUD own catches" ON catches
+  FOR ALL USING (auth.uid() = user_id);
 ```
 
 ### Fav Places Tablosu ✅
@@ -187,7 +274,29 @@ CREATE POLICY "Allow all operations" ON fav_places
 
 ## 🔄 Versiyon Geçmişi
 
-### v1.4.0 (27 Aralık 2025) - Güncel
+### v1.5.0 (4 Ocak 2026) - Güncel
+- ✅ **Büyük Refactoring**
+  - page.js: ~1900 satırdan ~385 satıra düşürüldü
+  - 5 tab komponenti oluşturuldu (HomeTab, CatchesTab, WeatherTab, LunarTab, StatsTab)
+  - Header ve TabNav ayrı komponentlere taşındı
+  - Modüler ve bakımı kolay mimari
+- ✅ **Kullanıcı Kimlik Doğrulama**
+  - Supabase Auth entegrasyonu
+  - Email/Password ile giriş/kayıt
+  - Tab bazlı erişim kontrolü (Ana Sayfa hariç hepsi login gerektirir)
+  - Kullanıcı bazlı veri izolasyonu (RLS)
+- ✅ **Gelişmiş Balık & Yem Önerileri**
+  - 10'dan 50+ senaryoya genişletildi
+  - Mevsim, saat, sıcaklık, rüzgar, basınç faktörleri
+  - Ay fazına göre gece/gündüz önerileri
+- ✅ **Marine API Düzeltmesi**
+  - Dalga verisi ayrı endpoint'ten alınıyor (marine-api.open-meteo.com)
+  - Kara noktalarında graceful fallback
+- ✅ **UI İyileştirmeleri**
+  - Tab navigasyonu sticky yapıldı
+  - Header scroll'da sabit kalıyor
+
+### v1.4.0 (27 Aralık 2025)
 - ✅ **Leaflet Harita Entegrasyonu**
   - Favori/Harita toggle seçimi
   - İnteraktif harita (Marmara + Karadeniz)
@@ -218,8 +327,8 @@ CREATE POLICY "Allow all operations" ON fav_places
 ## 👥 Proje Bilgileri
 
 **Geliştirici:** UZ FishLog Team (Uzbad)
-**Versiyon:** 1.4.0
-**Son Güncelleme:** 27 Aralık 2025
+**Versiyon:** 1.5.0
+**Son Güncelleme:** 4 Ocak 2026
 
 **GitHub:** https://github.com/uzbadgimli/Uz-FishLog
 **Domain:** http://falancayer.com
