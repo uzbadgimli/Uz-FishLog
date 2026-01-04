@@ -165,11 +165,31 @@ export default function Home() {
 
   async function fetchWeatherForLocation(lat, lon) {
     try {
-      const response = await fetch(
+      // Hava durumu
+      const weatherResponse = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,wind_direction_10m,weather_code,relative_humidity_2m,pressure_msl&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,wind_speed_10m_max&timezone=Europe%2FIstanbul&forecast_days=7`
       )
-      const data = await response.json()
-      setWeatherData(data)
+      const weatherData = await weatherResponse.json()
+
+      // Deniz/dalga durumu (ayri API)
+      try {
+        const marineResponse = await fetch(
+          `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=wave_height,wave_period,swell_wave_height&timezone=Europe%2FIstanbul`
+        )
+        const marineData = await marineResponse.json()
+        // Marine veriyi ana veriye ekle
+        if (marineData.hourly) {
+          weatherData.marine = {
+            wave_height: marineData.hourly.wave_height,
+            wave_period: marineData.hourly.wave_period,
+            swell_wave_height: marineData.hourly.swell_wave_height
+          }
+        }
+      } catch (marineError) {
+        console.log('Marine veri alinamadi (kara noktasi olabilir)')
+      }
+
+      setWeatherData(weatherData)
     } catch (error) {
       console.error('Lokasyon hava durumu hatası:', error)
     }

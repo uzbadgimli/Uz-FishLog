@@ -74,6 +74,9 @@
 .tabNav {
   background: #1E40AF;
   border-top: 1px solid #2563EB;
+  position: sticky;
+  top: 60px;
+  z-index: 90;
 }
 
 .tabNavContent {
