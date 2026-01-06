@@ -10,7 +10,10 @@ export default function HomeTab({
   weather,
   catches,
   todaysCatches,
-  setActiveTab
+  setActiveTab,
+  user,
+  userFavorites,
+  setDefaultLocation
 }) {
   return (
     <div>
@@ -37,7 +40,30 @@ export default function HomeTab({
       {weather && (
         <div className={styles.weatherCard} style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
           <div className={styles.weatherCardHeader}>
-            <h3 style={{ color: theme.text }}>Istanbul - Marmara</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <h3 style={{ color: theme.text, margin: 0 }}>{weather.locationName || 'Istanbul Kartal'}</h3>
+              {user && userFavorites && userFavorites.length > 0 && (
+                <select
+                  onChange={(e) => setDefaultLocation(e.target.value || null)}
+                  value={userFavorites.find(f => f.is_default)?.id || ''}
+                  style={{
+                    background: isDarkMode ? '#334155' : '#EFF6FF',
+                    color: isDarkMode ? '#94A3B8' : '#1E40AF',
+                    border: `1px solid ${isDarkMode ? '#475569' : '#BFDBFE'}`,
+                    borderRadius: '0.375rem',
+                    padding: '0.25rem 0.5rem',
+                    fontSize: '0.75rem',
+                    cursor: 'pointer'
+                  }}
+                  title="Varsayilan lokasyonu degistir"
+                >
+                  <option value="">Istanbul Kartal (Varsayilan)</option>
+                  {userFavorites.map(fav => (
+                    <option key={fav.id} value={fav.id}>{fav.name}</option>
+                  ))}
+                </select>
+              )}
+            </div>
             <div className="weatherIcon">{getWeatherIcon(weather.current.weather_code)}</div>
           </div>
           <div style={{

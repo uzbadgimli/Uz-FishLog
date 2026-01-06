@@ -70,10 +70,14 @@ export default function Home() {
   const [huntDate, setHuntDate] = useState(new Date().toISOString().split('T')[0])
   const [huntTime, setHuntTime] = useState(new Date().toTimeString().slice(0, 5))
 
+  // Varsayilan lokasyon state (kullanici icin)
+  const [defaultUserLocation, setDefaultUserLocation] = useState(null)
+
   // Kullanıcı favorilerini yükle
   async function fetchUserFavorites() {
     if (!user) {
       setUserFavorites([])
+      setDefaultUserLocation(null)
       return
     }
 
@@ -86,8 +90,42 @@ export default function Home() {
 
       if (error) throw error
       setUserFavorites(data || [])
+
+      // is_default olan varsa onu kullan
+      const defaultLoc = data?.find(f => f.is_default)
+      if (defaultLoc) {
+        setDefaultUserLocation(defaultLoc)
+      }
     } catch (error) {
       console.error('Favoriler yüklenemedi:', error)
+    }
+  }
+
+  // Varsayilan lokasyonu ayarla
+  async function setDefaultLocation(favoriteId) {
+    if (!user) return
+
+    try {
+      // Onceki varsayilani kaldir
+      await supabase
+        .from('fav_places')
+        .update({ is_default: false })
+        .eq('user_id', user.id)
+
+      // Yeni varsayilani ayarla
+      if (favoriteId) {
+        await supabase
+          .from('fav_places')
+          .update({ is_default: true })
+          .eq('id', favoriteId)
+      }
+
+      // Favorileri yeniden yukle
+      await fetchUserFavorites()
+      // Hava durumunu yeniden cek
+      fetchWeatherWithDefault()
+    } catch (error) {
+      console.error('Varsayilan ayarlanamadi:', error)
     }
   }
 
@@ -149,12 +187,45 @@ export default function Home() {
     }
   }
 
-  async function fetchWeather() {
+  // Varsayilan lokasyon: Istanbul Kartal
+  const DEFAULT_LOCATION = { lat: 40.8966, lon: 29.1905, name: 'Istanbul Kartal' }
+
+  // Kullanicinin varsayilan lokasyonu veya default
+  function getActiveDefaultLocation() {
+    if (defaultUserLocation) {
+      return { lat: defaultUserLocation.lat, lon: defaultUserLocation.lon, name: defaultUserLocation.name }
+    }
+    return DEFAULT_LOCATION
+  }
+
+  async function fetchWeatherWithDefault() {
+    const loc = getActiveDefaultLocation()
     try {
+      // Hava durumu
       const response = await fetch(
-        'https://api.open-meteo.com/v1/forecast?latitude=41.0082&longitude=28.9784&current=temperature_2m,wind_speed_10m,wind_direction_10m,weather_code,relative_humidity_2m,pressure_msl&marine=wave_height&timezone=Europe%2FIstanbul'
+        `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,wind_speed_10m,wind_direction_10m,weather_code,relative_humidity_2m,pressure_msl&timezone=Europe%2FIstanbul`
       )
       const data = await response.json()
+      // Lokasyon adini ekle
+      data.locationName = loc.name
+
+      // Deniz/dalga durumu (ayri API)
+      try {
+        const marineResponse = await fetch(
+          `https://marine-api.open-meteo.com/v1/marine?latitude=${loc.lat}&longitude=${loc.lon}&hourly=wave_height,wave_period,swell_wave_height&timezone=Europe%2FIstanbul`
+        )
+        const marineData = await marineResponse.json()
+        if (marineData.hourly) {
+          data.marine = {
+            wave_height: marineData.hourly.wave_height,
+            wave_period: marineData.hourly.wave_period,
+            swell_wave_height: marineData.hourly.swell_wave_height
+          }
+        }
+      } catch (marineError) {
+        console.log('Marine veri alinamadi (kara noktasi olabilir)')
+      }
+
       setWeather(data)
       setLoadingWeather(false)
     } catch (error) {
@@ -212,8 +283,8 @@ export default function Home() {
   }
 
   useEffect(() => {
-    fetchWeather()
-  }, [])
+    fetchWeatherWithDefault()
+  }, [defaultUserLocation])
 
   // User değiştiğinde verileri yeniden yükle
   useEffect(() => {
@@ -317,6 +388,9 @@ export default function Home() {
             catches={catches}
             todaysCatches={todaysCatches}
             setActiveTab={setActiveTab}
+            user={user}
+            userFavorites={userFavorites}
+            setDefaultLocation={setDefaultLocation}
           />
         )}
 

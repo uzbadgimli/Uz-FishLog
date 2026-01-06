@@ -1,5 +1,13 @@
 import "./globals.css";
+import { Inter } from "next/font/google";
 import Providers from "./components/Providers";
+
+// Inter - modern, temiz, profesyonel font
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 export const metadata = {
   title: "UZ FishLog - Balık Avı Takip",
@@ -22,14 +30,14 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="tr">
+    <html lang="tr" className={inter.variable}>
       <head>
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="UZ FishLog" />
       </head>
-      <body className="antialiased">
+      <body className={`${inter.className} antialiased`}>
         <Providers>
           {children}
         </Providers>
