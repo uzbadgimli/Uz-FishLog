@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/app/context/AuthContext'
+import { useLanguage } from '@/app/context/LanguageContext'
 
 export default function AuthModal({ isOpen, onClose, isDarkMode }) {
   const [mode, setMode] = useState('login') // 'login' | 'register'
@@ -12,6 +13,7 @@ export default function AuthModal({ isOpen, onClose, isDarkMode }) {
   const [success, setSuccess] = useState('')
 
   const { signIn, signUp, signInWithGoogle } = useAuth()
+  const { t } = useLanguage()
 
   if (!isOpen) return null
 
@@ -35,13 +37,13 @@ export default function AuthModal({ isOpen, onClose, isDarkMode }) {
         if (result.error) {
           setError(result.error)
         } else {
-          setSuccess('Kayıt başarılı! Giriş yapabilirsiniz.')
+          setSuccess(t('auth.registerSuccess'))
           setMode('login')
           setPassword('')
         }
       }
     } catch (err) {
-      setError('Bir hata oluştu, tekrar deneyin')
+      setError(t('auth.genericError'))
     } finally {
       setLoading(false)
     }
@@ -57,7 +59,7 @@ export default function AuthModal({ isOpen, onClose, isDarkMode }) {
       }
       // Google OAuth yönlendirecek, modal kapanmasına gerek yok
     } catch (err) {
-      setError('Google ile giriş başarısız')
+      setError(t('auth.googleError'))
     } finally {
       setLoading(false)
     }
@@ -208,7 +210,7 @@ export default function AuthModal({ isOpen, onClose, isDarkMode }) {
         </button>
 
         <h2 style={titleStyle}>
-          {mode === 'login' ? 'Giriş Yap' : 'Kayıt Ol'}
+          {mode === 'login' ? t('auth.login') : t('auth.register')}
         </h2>
 
         {error && <div style={errorStyle}>{error}</div>}
@@ -217,7 +219,7 @@ export default function AuthModal({ isOpen, onClose, isDarkMode }) {
         <form onSubmit={handleSubmit}>
           <input
             type="email"
-            placeholder="Email"
+            placeholder={t('auth.email')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             style={inputStyle}
@@ -226,7 +228,7 @@ export default function AuthModal({ isOpen, onClose, isDarkMode }) {
           />
           <input
             type="password"
-            placeholder="Şifre"
+            placeholder={t('auth.password')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             style={inputStyle}
@@ -235,13 +237,13 @@ export default function AuthModal({ isOpen, onClose, isDarkMode }) {
             minLength={6}
           />
           <button type="submit" style={buttonStyle} disabled={loading}>
-            {loading ? 'Yükleniyor...' : mode === 'login' ? 'Giriş Yap' : 'Kayıt Ol'}
+            {loading ? t('auth.loading') : mode === 'login' ? t('auth.login') : t('auth.register')}
           </button>
         </form>
 
         <div style={dividerStyle}>
           <div style={dividerLineStyle}></div>
-          <span style={{ padding: '0 12px' }}>veya</span>
+          <span style={{ padding: '0 12px' }}>{t('auth.or')}</span>
           <div style={dividerLineStyle}></div>
         </div>
 
@@ -269,22 +271,22 @@ export default function AuthModal({ isOpen, onClose, isDarkMode }) {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          Google ile Giriş
+          {t('auth.googleLogin')}
         </button>
 
         <p style={{ textAlign: 'center', marginTop: '20px', color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: '0.875rem' }}>
           {mode === 'login' ? (
             <>
-              Hesabınız yok mu?{' '}
+              {t('auth.noAccount')}{' '}
               <span style={linkStyle} onClick={switchMode}>
-                Kayıt Ol
+                {t('auth.register')}
               </span>
             </>
           ) : (
             <>
-              Zaten hesabınız var mı?{' '}
+              {t('auth.haveAccount')}{' '}
               <span style={linkStyle} onClick={switchMode}>
-                Giriş Yap
+                {t('auth.login')}
               </span>
             </>
           )}

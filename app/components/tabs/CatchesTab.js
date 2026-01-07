@@ -1,6 +1,7 @@
 'use client'
 
 import styles from '@/app/FishLog.module.css'
+import { useLanguage } from '@/app/context/LanguageContext'
 
 export default function CatchesTab({
   theme,
@@ -26,8 +27,15 @@ export default function CatchesTab({
   addCatch,
   setShowAuthModal
 }) {
+  const { t, language } = useLanguage()
+
   return (
     <div>
+      <div className={styles.pageTitle}>
+        <h2 style={{ color: theme.text }}>{t('catches.title')}</h2>
+        <p style={{ color: theme.textSecondary }}>{t('catches.subtitle')}</p>
+      </div>
+
       {!user ? (
         /* Giris yapilmamis uyarisi */
         <div style={{
@@ -38,9 +46,9 @@ export default function CatchesTab({
           border: `1px solid ${theme.cardBorder}`
         }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
-          <h3 style={{ color: theme.text, marginBottom: '0.5rem' }}>Giris Yapin</h3>
+          <h3 style={{ color: theme.text, marginBottom: '0.5rem' }}>{t('auth.loginRequired')}</h3>
           <p style={{ color: theme.textSecondary, marginBottom: '1.5rem' }}>
-            Avlarinizi kaydetmek ve goruntulemek icin giris yapmalisiniz.
+            {t('auth.loginRequiredDesc')}
           </p>
           <button
             onClick={() => setShowAuthModal(true)}
@@ -55,20 +63,20 @@ export default function CatchesTab({
               cursor: 'pointer'
             }}
           >
-            Giris Yap / Kayit Ol
+            {t('auth.loginRegisterButton')}
           </button>
         </div>
       ) : (
         <>
           {/* Yeni Av Formu */}
           <div className={styles.formCard} style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
-            <h3 style={{ color: theme.text }}>+ Yeni Av Ekle</h3>
+            <h3 style={{ color: theme.text }}>+ {t('catches.addNew')}</h3>
             <form onSubmit={addCatch}>
               <div className={styles.formGroup}>
-                <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>Balik Turu *</label>
+                <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>{t('catches.species')} *</label>
                 <input
                   type="text"
-                  placeholder="Levrek, Cupra, Lufer..."
+                  placeholder={t('catches.speciesPlaceholder')}
                   value={species}
                   onChange={(e) => setSpecies(e.target.value)}
                   className={styles.formInput}
@@ -79,7 +87,7 @@ export default function CatchesTab({
 
               <div className={styles.formRow}>
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>Boy (cm) *</label>
+                  <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>{t('catches.length')} *</label>
                   <input
                     type="number"
                     placeholder="45"
@@ -91,7 +99,7 @@ export default function CatchesTab({
                   />
                 </div>
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>Agirlik (gr)</label>
+                  <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>{t('catches.weight')}</label>
                   <input
                     type="number"
                     placeholder="1200"
@@ -104,10 +112,10 @@ export default function CatchesTab({
               </div>
 
               <div className={styles.formGroup}>
-                <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>Tutulan Yer *</label>
+                <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>{t('catches.location')} *</label>
                 <input
                   type="text"
-                  placeholder="Kumbag, Sile, Bogaz..."
+                  placeholder={t('catches.locationPlaceholder')}
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   className={styles.formInput}
@@ -118,7 +126,7 @@ export default function CatchesTab({
 
               <div className={styles.formRow}>
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>Tarih *</label>
+                  <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>{t('catches.date')} *</label>
                   <input
                     type="date"
                     value={huntDate}
@@ -129,7 +137,7 @@ export default function CatchesTab({
                   />
                 </div>
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>Saat *</label>
+                  <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>{t('catches.time')} *</label>
                   <input
                     type="time"
                     value={huntTime}
@@ -142,9 +150,9 @@ export default function CatchesTab({
               </div>
 
               <div className={styles.formGroup}>
-                <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>Notlar</label>
+                <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>{t('catches.notes')}</label>
                 <textarea
-                  placeholder="Olta takimi, yem, hava durumu, teknik..."
+                  placeholder={t('catches.notesPlaceholder')}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   className={styles.formInput}
@@ -154,7 +162,7 @@ export default function CatchesTab({
               </div>
 
               <button type="submit" className={styles.submitButton}>
-                Av Kaydini Ekle
+                {t('catches.submit')}
               </button>
             </form>
           </div>
@@ -163,7 +171,7 @@ export default function CatchesTab({
           {catches.length > 0 && (
             <div className={styles.catchesCard} style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
               <div className={styles.catchesHeader}>
-                <h3 style={{ color: theme.text }}>Tum Avlarim ({catches.length})</h3>
+                <h3 style={{ color: theme.text }}>{t('catches.allCatches')} ({catches.length})</h3>
               </div>
               <div>
                 {catches.map((c) => (
@@ -220,14 +228,14 @@ export default function CatchesTab({
                         whiteSpace: 'nowrap'
                       }}>
                         {c.hunt_date
-                          ? new Date(c.hunt_date).toLocaleString('tr-TR', {
+                          ? new Date(c.hunt_date).toLocaleString(language === 'en' ? 'en-GB' : 'tr-TR', {
                               day: '2-digit',
                               month: '2-digit',
                               year: 'numeric',
                               hour: '2-digit',
                               minute: '2-digit'
                             })
-                          : new Date(c.created_at).toLocaleDateString('tr-TR')
+                          : new Date(c.created_at).toLocaleDateString(language === 'en' ? 'en-GB' : 'tr-TR')
                         }
                       </span>
                     </div>
@@ -255,8 +263,8 @@ export default function CatchesTab({
           {catches.length === 0 && (
             <div className={styles.emptyState}>
               <div className="icon">🎣</div>
-              <h3>Henuz Av Kaydi Yok</h3>
-              <p>Yukaridaki formu kullanarak ilk avini ekle!</p>
+              <h3>{t('catches.noCatches')}</h3>
+              <p>{t('catches.addFirst')}</p>
             </div>
           )}
         </>

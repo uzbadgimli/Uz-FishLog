@@ -3,6 +3,7 @@
 import styles from '@/app/FishLog.module.css'
 import { getWeatherIcon, getWindDirection } from '@/app/utils/helpers'
 import { getFishSuggestion } from '@/app/utils/fishSuggestions'
+import { useLanguage } from '@/app/context/LanguageContext'
 
 export default function WeatherTab({
   theme,
@@ -28,13 +29,15 @@ export default function WeatherTab({
   MapComponent,
   setShowAuthModal
 }) {
+  const { t, language } = useLanguage()
+
   // Login kontrolu
   if (!user) {
     return (
       <div>
         <div className={styles.pageTitle}>
-          <h2 style={{ color: theme.text }}>Hava & Deniz Durumu</h2>
-          <p style={{ color: theme.textSecondary }}>Detayli hava bilgisi icin giris yapin</p>
+          <h2 style={{ color: theme.text }}>{t('weather.title')}</h2>
+          <p style={{ color: theme.textSecondary }}>{t('weather.subtitle')}</p>
         </div>
         <div style={{
           background: theme.cardBg,
@@ -44,9 +47,9 @@ export default function WeatherTab({
           border: `1px solid ${theme.cardBorder}`
         }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
-          <h3 style={{ color: theme.text, marginBottom: '0.5rem' }}>Giris Yapin</h3>
+          <h3 style={{ color: theme.text, marginBottom: '0.5rem' }}>{t('auth.loginRequired')}</h3>
           <p style={{ color: theme.textSecondary, marginBottom: '1.5rem' }}>
-            Hava durumu ve favori lokasyonlar icin giris yapmalisiniz.
+            {t('auth.loginRequiredDesc')}
           </p>
           <button
             onClick={() => setShowAuthModal(true)}
@@ -61,7 +64,7 @@ export default function WeatherTab({
               cursor: 'pointer'
             }}
           >
-            Giris Yap / Kayit Ol
+            {t('auth.loginRegisterButton')}
           </button>
         </div>
       </div>
@@ -71,9 +74,9 @@ export default function WeatherTab({
   return (
     <div>
       <div className={styles.pageTitle}>
-        <h2 style={{ color: theme.text }}>Hava & Deniz Durumu</h2>
+        <h2 style={{ color: theme.text }}>{t('weather.title')}</h2>
         <p style={{ color: theme.textSecondary }}>
-          {weatherMode === 'favorites' ? 'Favori yerlerden sec' : 'Haritadan konum sec'}
+          {weatherMode === 'favorites' ? t('weather.favoritesMode') : t('weather.mapMode')}
         </p>
       </div>
 
@@ -100,7 +103,7 @@ export default function WeatherTab({
             transition: 'all 0.2s'
           }}
         >
-          Favoriler
+          {t('weather.favorites')}
         </button>
         <button
           onClick={() => {
@@ -120,7 +123,7 @@ export default function WeatherTab({
             transition: 'all 0.2s'
           }}
         >
-          Haritadan Sec
+          {t('weather.map')}
         </button>
       </div>
 
@@ -176,7 +179,7 @@ export default function WeatherTab({
                 alignItems: 'center',
                 gap: '0.5rem'
               }}>
-                Kaydedilen Favoriler
+                {t('weather.yourFavorites')}
               </h4>
               <div style={{
                 display: 'flex',
@@ -263,19 +266,19 @@ export default function WeatherTab({
                     <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
                       {Math.round(weatherData.current.temperature_2m)}°C
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Sicaklik</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{t('weather.temperature')}</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
                       {Math.round(weatherData.current.wind_speed_10m)}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Ruzgar (km/s)</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{t('weather.wind')}</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
-                      {getWindDirection(weatherData.current.wind_direction_10m)}
+                      {getWindDirection(weatherData.current.wind_direction_10m, language)}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Yon</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{t('weather.direction')}</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
@@ -283,19 +286,19 @@ export default function WeatherTab({
                         ? `${Math.round(weatherData.marine.wave_height[0] * 100)}cm`
                         : '0cm'}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Dalga</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{t('weather.wave')}</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
                       {Math.round(weatherData.current.relative_humidity_2m)}%
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Nem</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{t('weather.humidity')}</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
                       {Math.round(weatherData.current.pressure_msl)}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Basinc</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{t('weather.pressure')}</div>
                   </div>
                 </div>
 
@@ -306,17 +309,17 @@ export default function WeatherTab({
                   background: isDarkMode ? '#334155' : '#EFF6FF',
                   borderRadius: '0.75rem'
                 }}>
-                  <h4 style={{ color: theme.text, marginBottom: '0.5rem' }}>Bu Havada Hangi Balik?</h4>
+                  <h4 style={{ color: theme.text, marginBottom: '0.5rem' }}>{t('home.fishSuggestion')}</h4>
                   <p style={{ marginBottom: '0.75rem', color: isDarkMode ? '#CBD5E1' : '#475569' }}>
-                    {getFishSuggestion(weatherData.current.temperature_2m, weatherData.current.wind_speed_10m).fish}
+                    {getFishSuggestion(weatherData.current.temperature_2m, weatherData.current.wind_speed_10m, language).fish}
                   </p>
                   <div style={{
                     paddingTop: '0.75rem',
                     borderTop: `1px solid ${isDarkMode ? '#475569' : 'rgba(30, 64, 175, 0.2)'}`
                   }}>
-                    <strong style={{ fontSize: '0.875rem', color: theme.text }}>Tavsiye Yem:</strong>
+                    <strong style={{ fontSize: '0.875rem', color: theme.text }}>{t('home.baitSuggestion')}</strong>
                     <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: isDarkMode ? '#CBD5E1' : '#475569' }}>
-                      {getFishSuggestion(weatherData.current.temperature_2m, weatherData.current.wind_speed_10m).bait}
+                      {getFishSuggestion(weatherData.current.temperature_2m, weatherData.current.wind_speed_10m, language).bait}
                     </p>
                   </div>
                 </div>
@@ -331,7 +334,7 @@ export default function WeatherTab({
                 marginBottom: '1rem'
               }}>
                 <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: theme.text, marginBottom: '1rem' }}>
-                  7 Gunluk Tahmin
+                  {t('weather.forecast')}
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {weatherData.daily && weatherData.daily.time.slice(0, 7).map((date, i) => (
@@ -345,7 +348,7 @@ export default function WeatherTab({
                       gap: '0.5rem'
                     }}>
                       <div style={{ fontWeight: '600', color: isDarkMode ? '#60A5FA' : '#1E40AF', fontSize: '0.875rem' }}>
-                        {new Date(date).toLocaleDateString('tr-TR', { weekday: 'short', day: 'numeric', month: 'short' })}
+                        {new Date(date).toLocaleDateString(language === 'en' ? 'en-GB' : 'tr-TR', { weekday: 'short', day: 'numeric', month: 'short' })}
                       </div>
                       <div style={{ fontSize: '1.5rem', textAlign: 'center' }}>
                         {getWeatherIcon(weatherData.daily.weather_code[i])}
@@ -366,22 +369,22 @@ export default function WeatherTab({
               {weatherData.daily && (
                 <div style={{ background: theme.cardBg, borderRadius: '1rem', padding: '1rem', border: `1px solid ${theme.cardBorder}` }}>
                   <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: theme.text, marginBottom: '1rem' }}>
-                    Gun Dogumu & Batimi
+                    {t('weather.sunrise')} & {t('weather.sunset')}
                   </h3>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div style={{ textAlign: 'center', padding: '1rem', background: isDarkMode ? '#78350F' : '#FEF3C7', borderRadius: '0.75rem' }}>
                       <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🌅</div>
                       <div style={{ fontWeight: 'bold', color: isDarkMode ? '#FCD34D' : '#92400E' }}>
-                        {new Date(weatherData.daily.sunrise[0]).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(weatherData.daily.sunrise[0]).toLocaleTimeString(language === 'en' ? 'en-GB' : 'tr-TR', { hour: '2-digit', minute: '2-digit' })}
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: isDarkMode ? '#FCD34D' : '#92400E' }}>Dogus</div>
+                      <div style={{ fontSize: '0.75rem', color: isDarkMode ? '#FCD34D' : '#92400E' }}>{t('weather.sunrise')}</div>
                     </div>
                     <div style={{ textAlign: 'center', padding: '1rem', background: isDarkMode ? '#1E3A5F' : '#DBEAFE', borderRadius: '0.75rem' }}>
                       <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🌇</div>
                       <div style={{ fontWeight: 'bold', color: isDarkMode ? '#93C5FD' : '#1E3A8A' }}>
-                        {new Date(weatherData.daily.sunset[0]).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(weatherData.daily.sunset[0]).toLocaleTimeString(language === 'en' ? 'en-GB' : 'tr-TR', { hour: '2-digit', minute: '2-digit' })}
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: isDarkMode ? '#93C5FD' : '#1E3A8A' }}>Batis</div>
+                      <div style={{ fontSize: '0.75rem', color: isDarkMode ? '#93C5FD' : '#1E3A8A' }}>{t('weather.sunset')}</div>
                     </div>
                   </div>
                 </div>
@@ -393,10 +396,10 @@ export default function WeatherTab({
             <div style={{ textAlign: 'center', padding: '3rem 1rem', background: theme.cardBg, borderRadius: '1rem', border: `1px solid ${theme.cardBorder}` }}>
               <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>📍</div>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: theme.text, marginBottom: '0.5rem' }}>
-                Bir Lokasyon Sec
+                {t('weather.noFavorites')}
               </h3>
               <p style={{ color: theme.textSecondary }}>
-                Yukaridaki butonlardan favori yerini sec
+                {t('weather.clickMapToAdd')}
               </p>
             </div>
           )}
@@ -430,7 +433,7 @@ export default function WeatherTab({
               />
             </div>
             <p style={{ fontSize: '0.75rem', color: theme.textSecondary, marginTop: '0.5rem', textAlign: 'center' }}>
-              Haritaya tiklayarak konum sec
+              {t('weather.clickMapToAdd')}
             </p>
           </div>
 
@@ -457,7 +460,7 @@ export default function WeatherTab({
                       gap: '0.5rem'
                     }}
                   >
-                    Bu Konumu Favorilere Ekle
+                    {t('weather.saveFavorite')}
                   </button>
                 </div>
               )}
@@ -488,19 +491,19 @@ export default function WeatherTab({
                     <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
                       {Math.round(weatherData.current.temperature_2m)}°C
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Sicaklik</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{t('weather.temperature')}</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
                       {Math.round(weatherData.current.wind_speed_10m)}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Ruzgar (km/s)</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{t('weather.wind')}</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
-                      {getWindDirection(weatherData.current.wind_direction_10m)}
+                      {getWindDirection(weatherData.current.wind_direction_10m, language)}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Yon</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{t('weather.direction')}</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
@@ -508,19 +511,19 @@ export default function WeatherTab({
                         ? `${Math.round(weatherData.marine.wave_height[0] * 100)}cm`
                         : '0cm'}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Dalga</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{t('weather.wave')}</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
                       {Math.round(weatherData.current.relative_humidity_2m)}%
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Nem</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{t('weather.humidity')}</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
                       {Math.round(weatherData.current.pressure_msl)}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Basinc</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{t('weather.pressure')}</div>
                   </div>
                 </div>
 
@@ -531,17 +534,17 @@ export default function WeatherTab({
                   background: isDarkMode ? '#334155' : '#EFF6FF',
                   borderRadius: '0.75rem'
                 }}>
-                  <h4 style={{ color: theme.text, marginBottom: '0.5rem' }}>Bu Havada Hangi Balik?</h4>
+                  <h4 style={{ color: theme.text, marginBottom: '0.5rem' }}>{t('home.fishSuggestion')}</h4>
                   <p style={{ marginBottom: '0.75rem', color: isDarkMode ? '#CBD5E1' : '#475569' }}>
-                    {getFishSuggestion(weatherData.current.temperature_2m, weatherData.current.wind_speed_10m).fish}
+                    {getFishSuggestion(weatherData.current.temperature_2m, weatherData.current.wind_speed_10m, language).fish}
                   </p>
                   <div style={{
                     paddingTop: '0.75rem',
                     borderTop: `1px solid ${isDarkMode ? '#475569' : 'rgba(30, 64, 175, 0.2)'}`
                   }}>
-                    <strong style={{ fontSize: '0.875rem', color: theme.text }}>Tavsiye Yem:</strong>
+                    <strong style={{ fontSize: '0.875rem', color: theme.text }}>{t('home.baitSuggestion')}</strong>
                     <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: isDarkMode ? '#CBD5E1' : '#475569' }}>
-                      {getFishSuggestion(weatherData.current.temperature_2m, weatherData.current.wind_speed_10m).bait}
+                      {getFishSuggestion(weatherData.current.temperature_2m, weatherData.current.wind_speed_10m, language).bait}
                     </p>
                   </div>
                 </div>
@@ -554,7 +557,7 @@ export default function WeatherTab({
             <div style={{ textAlign: 'center', padding: '2rem 1rem', background: theme.cardBg, borderRadius: '1rem', border: `1px solid ${theme.cardBorder}` }}>
               <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>👆</div>
               <p style={{ color: theme.textSecondary }}>
-                Haritaya tiklayarak konum sec
+                {t('weather.clickMapToAdd')}
               </p>
             </div>
           )}
@@ -581,10 +584,10 @@ export default function WeatherTab({
                 width: '100%',
                 maxWidth: '320px'
               }}>
-                <h3 style={{ color: theme.text, marginBottom: '1rem' }}>Favoriye Ekle</h3>
+                <h3 style={{ color: theme.text, marginBottom: '1rem' }}>{t('weather.saveFavorite')}</h3>
                 <input
                   type="text"
-                  placeholder="Konum adi (orn: Gizli Koy)"
+                  placeholder={t('weather.favoriteNamePlaceholder')}
                   value={newFavoriteName}
                   onChange={(e) => setNewFavoriteName(e.target.value)}
                   style={{
@@ -615,7 +618,7 @@ export default function WeatherTab({
                       cursor: 'pointer'
                     }}
                   >
-                    Iptal
+                    {t('common.cancel')}
                   </button>
                   <button
                     onClick={saveFavorite}
@@ -631,7 +634,7 @@ export default function WeatherTab({
                       cursor: savingFavorite || !newFavoriteName.trim() ? 'not-allowed' : 'pointer'
                     }}
                   >
-                    {savingFavorite ? 'Kaydediliyor...' : 'Kaydet'}
+                    {savingFavorite ? t('weather.saving') : t('common.save')}
                   </button>
                 </div>
               </div>

@@ -1,5 +1,11 @@
+// Ay fazı isimleri - dil desteği
+const moonPhaseNames = {
+  tr: ['Yeni Ay', 'Hilal', 'İlk Dördün', 'Şişkin Ay', 'Dolunay', 'Şişkin Ay', 'Son Dördün', 'Hilal'],
+  en: ['New Moon', 'Waxing Crescent', 'First Quarter', 'Waxing Gibbous', 'Full Moon', 'Waning Gibbous', 'Last Quarter', 'Waning Crescent']
+}
+
 // Belirli bir tarih için ay fazı hesaplama
-export function getMoonPhaseForDate(date) {
+export function getMoonPhaseForDate(date, lang = 'tr') {
   let year = date.getFullYear()
   let month = date.getMonth() + 1
   const day = date.getDate()
@@ -23,19 +29,19 @@ export function getMoonPhaseForDate(date) {
   if (b >= 8) b = 0
 
   const phases = ['🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘']
-  const names = ['Yeni Ay', 'Hilal', 'İlk Dördün', 'Şişkin', 'Dolunay', 'Şişkin', 'Son Dördün', 'Hilal']
+  const names = moonPhaseNames[lang] || moonPhaseNames.tr
 
   return { icon: phases[b], name: names[b], phase: b, moonAge: moonAge }
 }
 
 // Bugünün ay fazı
-export function getMoonPhase() {
-  return getMoonPhaseForDate(new Date())
+export function getMoonPhase(lang = 'tr') {
+  return getMoonPhaseForDate(new Date(), lang)
 }
 
 // Solunar aktivite hesaplama
-export function getSolunarData(date) {
-  const moonData = getMoonPhaseForDate(date)
+export function getSolunarData(date, lang = 'tr') {
+  const moonData = getMoonPhaseForDate(date, lang)
 
   // Ay doğuş/batış tahmini (basitleştirilmiş)
   const baseHour = 6 + (moonData.moonAge * 0.8) % 24
@@ -76,20 +82,21 @@ export function getSolunarData(date) {
 }
 
 // Takvim için günleri oluştur
-export function getCalendarDays() {
+export function getCalendarDays(lang = 'tr') {
   const today = new Date()
   const days = []
+  const locale = lang === 'en' ? 'en-GB' : 'tr-TR'
 
   // Bugünden 3 gün önce ve 14 gün sonrası
   for (let i = -3; i <= 14; i++) {
     const date = new Date(today)
     date.setDate(today.getDate() + i)
-    const solunar = getSolunarData(date)
+    const solunar = getSolunarData(date, lang)
     days.push({
       date,
-      dayName: date.toLocaleDateString('tr-TR', { weekday: 'short' }),
+      dayName: date.toLocaleDateString(locale, { weekday: 'short' }),
       dayNum: date.getDate(),
-      month: date.toLocaleDateString('tr-TR', { month: 'short' }),
+      month: date.toLocaleDateString(locale, { month: 'short' }),
       isToday: i === 0,
       ...solunar
     })

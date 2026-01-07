@@ -1,6 +1,7 @@
 'use client'
 
 import styles from '@/app/FishLog.module.css'
+import { useLanguage } from '@/app/context/LanguageContext'
 
 export default function StatsTab({
   theme,
@@ -9,11 +10,13 @@ export default function StatsTab({
   catches,
   setShowAuthModal
 }) {
+  const { t, language } = useLanguage()
+
   return (
     <div>
       <div className={styles.pageTitle}>
-        <h2 style={{ color: theme.text }}>Av Analizi</h2>
-        <p style={{ color: theme.textSecondary }}>Istatistikler ve trendler</p>
+        <h2 style={{ color: theme.text }}>{t('stats.title')}</h2>
+        <p style={{ color: theme.textSecondary }}>{t('stats.subtitle')}</p>
       </div>
 
       {!user ? (
@@ -26,9 +29,9 @@ export default function StatsTab({
           border: `1px solid ${theme.cardBorder}`
         }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
-          <h3 style={{ color: theme.text, marginBottom: '0.5rem' }}>Giris Yapin</h3>
+          <h3 style={{ color: theme.text, marginBottom: '0.5rem' }}>{t('auth.loginRequired')}</h3>
           <p style={{ color: theme.textSecondary, marginBottom: '1.5rem' }}>
-            Istatistiklerinizi goruntulemek icin giris yapmalisiniz.
+            {t('auth.loginRequiredDesc')}
           </p>
           <button
             onClick={() => setShowAuthModal(true)}
@@ -43,14 +46,14 @@ export default function StatsTab({
               cursor: 'pointer'
             }}
           >
-            Giris Yap / Kayit Ol
+            {t('auth.loginRegisterButton')}
           </button>
         </div>
       ) : catches.length === 0 ? (
         <div className={styles.emptyState}>
           <div className="icon">📊</div>
-          <h3>Henuz Veri Yok</h3>
-          <p>Analiz icin once av kaydi eklemelisin</p>
+          <h3>{t('stats.noCatchesYet')}</h3>
+          <p>{t('stats.addCatchesToSeeStats')}</p>
         </div>
       ) : (
         <>
@@ -62,23 +65,23 @@ export default function StatsTab({
             color: 'white',
             marginBottom: '1rem'
           }}>
-            <h3 style={{ fontSize: '1.125rem', marginBottom: '1rem' }}>Genel Bakis</h3>
+            <h3 style={{ fontSize: '1.125rem', marginBottom: '1rem' }}>{t('stats.overview')}</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{catches.length}</div>
-                <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>Toplam Av</div>
+                <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>{t('stats.totalCatches')}</div>
               </div>
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
                   {[...new Set(catches.map(c => c.species))].length}
                 </div>
-                <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>Farkli Tur</div>
+                <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>{t('stats.differentSpecies')}</div>
               </div>
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
                   {[...new Set(catches.map(c => c.location))].length}
                 </div>
-                <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>Farkli Yer</div>
+                <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>{t('stats.differentLocations')}</div>
               </div>
             </div>
           </div>
@@ -92,7 +95,7 @@ export default function StatsTab({
             marginBottom: '1rem'
           }}>
             <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: theme.text, marginBottom: '1rem' }}>
-              Boy & Agirlik
+              {t('catches.length')} & {t('catches.weight')}
             </h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div style={{
@@ -101,7 +104,7 @@ export default function StatsTab({
                 borderRadius: '0.75rem',
                 textAlign: 'center'
               }}>
-                <div style={{ fontSize: '0.75rem', color: isDarkMode ? '#86EFAC' : '#166534', marginBottom: '0.25rem' }}>En Buyuk</div>
+                <div style={{ fontSize: '0.75rem', color: isDarkMode ? '#86EFAC' : '#166534', marginBottom: '0.25rem' }}>{t('stats.biggestCatch')}</div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#86EFAC' : '#166534' }}>
                   {Math.max(...catches.map(c => c.length_cm))} cm
                 </div>
@@ -115,13 +118,13 @@ export default function StatsTab({
                 borderRadius: '0.75rem',
                 textAlign: 'center'
               }}>
-                <div style={{ fontSize: '0.75rem', color: isDarkMode ? '#FCD34D' : '#92400E', marginBottom: '0.25rem' }}>Ortalama</div>
+                <div style={{ fontSize: '0.75rem', color: isDarkMode ? '#FCD34D' : '#92400E', marginBottom: '0.25rem' }}>{t('stats.averageSize')}</div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#FCD34D' : '#92400E' }}>
                   {Math.round(catches.reduce((sum, c) => sum + c.length_cm, 0) / catches.length)} cm
                 </div>
                 <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>
                   {catches.filter(c => c.weight_gr).length > 0 &&
-                    `${Math.round(catches.filter(c => c.weight_gr).reduce((sum, c) => sum + c.weight_gr, 0) / catches.filter(c => c.weight_gr).length)} gr ort.`
+                    `${Math.round(catches.filter(c => c.weight_gr).reduce((sum, c) => sum + c.weight_gr, 0) / catches.filter(c => c.weight_gr).length)} gr ${language === 'en' ? 'avg' : 'ort'}.`
                   }
                 </div>
               </div>
@@ -137,7 +140,7 @@ export default function StatsTab({
             marginBottom: '1rem'
           }}>
             <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: theme.text, marginBottom: '1rem' }}>
-              Tur Dagilimi
+              {t('stats.speciesDistribution')}
             </h3>
             {(() => {
               const speciesCount = catches.reduce((acc, c) => {
@@ -154,7 +157,7 @@ export default function StatsTab({
                     <div key={species}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
                         <span style={{ fontWeight: '600', color: isDarkMode ? '#60A5FA' : '#1E3A8A', textTransform: 'uppercase' }}>{species}</span>
-                        <span style={{ fontWeight: 'bold', color: colors[idx % colors.length] }}>{count} adet</span>
+                        <span style={{ fontWeight: 'bold', color: colors[idx % colors.length] }}>{count}</span>
                       </div>
                       <div style={{
                         height: '8px',
@@ -185,7 +188,7 @@ export default function StatsTab({
             marginBottom: '1rem'
           }}>
             <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: theme.text, marginBottom: '1rem' }}>
-              En Basarili Yerler
+              {t('stats.topLocations')}
             </h3>
             {(() => {
               const locationCount = catches.reduce((acc, c) => {
@@ -210,7 +213,7 @@ export default function StatsTab({
                         <span style={{ fontSize: '1.25rem' }}>{medals[idx]}</span>
                         <span style={{ fontWeight: '600', color: isDarkMode ? '#60A5FA' : '#1E3A8A' }}>{location}</span>
                       </div>
-                      <span style={{ fontWeight: 'bold', color: '#FB923C' }}>{count} av</span>
+                      <span style={{ fontWeight: 'bold', color: '#FB923C' }}>{count}</span>
                     </div>
                   ))}
                 </div>
@@ -226,21 +229,27 @@ export default function StatsTab({
             border: `1px solid ${theme.cardBorder}`
           }}>
             <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: theme.text, marginBottom: '1rem' }}>
-              Saat Dagilimi
+              {t('stats.timeDistribution')}
             </h3>
             {(() => {
               const hourCount = catches.reduce((acc, c) => {
                 if (c.hunt_date) {
                   const hour = new Date(c.hunt_date).getHours()
-                  const period = hour < 6 ? 'Gece (00-06)' :
-                                hour < 12 ? 'Sabah (06-12)' :
-                                hour < 18 ? 'Oglen (12-18)' : 'Aksam (18-24)'
+                  const period = hour < 6 ? 'night' :
+                                hour < 12 ? 'morning' :
+                                hour < 18 ? 'afternoon' : 'evening'
                   acc[period] = (acc[period] || 0) + 1
                 }
                 return acc
               }, {})
-              const periods = ['Sabah (06-12)', 'Oglen (12-18)', 'Aksam (18-24)', 'Gece (00-06)']
-              const icons = { 'Sabah (06-12)': '🌅', 'Oglen (12-18)': '☀️', 'Aksam (18-24)': '🌇', 'Gece (00-06)': '🌙' }
+              const periods = ['morning', 'afternoon', 'evening', 'night']
+              const icons = { 'morning': '🌅', 'afternoon': '☀️', 'evening': '🌇', 'night': '🌙' }
+              const labels = {
+                morning: t('stats.morning'),
+                afternoon: t('stats.afternoon'),
+                evening: t('stats.evening'),
+                night: t('stats.night')
+              }
               const total = Object.values(hourCount).reduce((a, b) => a + b, 0)
 
               return (
@@ -257,7 +266,7 @@ export default function StatsTab({
                       }}>
                         <div style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>{icons[period]}</div>
                         <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>{count}</div>
-                        <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{period.split(' ')[0]}</div>
+                        <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{labels[period]}</div>
                         <div style={{ fontSize: '0.625rem', color: isDarkMode ? '#64748B' : '#94A3B8' }}>%{percent}</div>
                       </div>
                     )

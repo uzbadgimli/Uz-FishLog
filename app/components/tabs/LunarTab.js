@@ -3,6 +3,7 @@
 import styles from '@/app/FishLog.module.css'
 import { getMoonFishSuggestion } from '@/app/utils/fishSuggestions'
 import { getSolunarData, getCalendarDays } from '@/app/utils/moonPhase'
+import { useLanguage } from '@/app/context/LanguageContext'
 
 export default function LunarTab({
   theme,
@@ -12,13 +13,15 @@ export default function LunarTab({
   setSelectedDay,
   setShowAuthModal
 }) {
+  const { t, language } = useLanguage()
+
   // Login kontrolu
   if (!user) {
     return (
       <div>
         <div className={styles.pageTitle}>
-          <h2 style={{ color: theme.text }}>Balik Aktivite Takvimi</h2>
-          <p style={{ color: theme.textSecondary }}>Ay fazlari ve solunar zamanlar</p>
+          <h2 style={{ color: theme.text }}>{t('lunar.title')}</h2>
+          <p style={{ color: theme.textSecondary }}>{t('lunar.subtitle')}</p>
         </div>
         <div style={{
           background: theme.cardBg,
@@ -28,9 +31,9 @@ export default function LunarTab({
           border: `1px solid ${theme.cardBorder}`
         }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
-          <h3 style={{ color: theme.text, marginBottom: '0.5rem' }}>Giris Yapin</h3>
+          <h3 style={{ color: theme.text, marginBottom: '0.5rem' }}>{t('auth.loginRequired')}</h3>
           <p style={{ color: theme.textSecondary, marginBottom: '1.5rem' }}>
-            Aktivite takvimi icin giris yapmalisiniz.
+            {t('auth.loginRequiredDesc')}
           </p>
           <button
             onClick={() => setShowAuthModal(true)}
@@ -45,21 +48,21 @@ export default function LunarTab({
               cursor: 'pointer'
             }}
           >
-            Giris Yap / Kayit Ol
+            {t('auth.loginRegisterButton')}
           </button>
         </div>
       </div>
     )
   }
 
-  const todaySolunar = getSolunarData(new Date())
-  const moonTip = getMoonFishSuggestion(todaySolunar.phase)
+  const todaySolunar = getSolunarData(new Date(), language)
+  const moonTip = getMoonFishSuggestion(todaySolunar.phase, language)
 
   return (
     <div>
       <div className={styles.pageTitle}>
-        <h2 style={{ color: theme.text }}>Balik Aktivite Takvimi</h2>
-        <p style={{ color: theme.textSecondary }}>Ay fazlari ve solunar zamanlar</p>
+        <h2 style={{ color: theme.text }}>{t('lunar.title')}</h2>
+        <p style={{ color: theme.textSecondary }}>{t('lunar.subtitle')}</p>
       </div>
 
       {/* Bugunun Ozeti */}
@@ -72,9 +75,9 @@ export default function LunarTab({
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <div>
-            <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>Bugun</div>
+            <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>{t('lunar.todayActivity')}</div>
             <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
-              {new Date().toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' })}
+              {new Date().toLocaleDateString(language === 'en' ? 'en-GB' : 'tr-TR', { weekday: 'long', day: 'numeric', month: 'long' })}
             </div>
           </div>
           <div style={{ textAlign: 'center' }}>
@@ -91,7 +94,7 @@ export default function LunarTab({
           marginBottom: '1rem'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.875rem' }}>Balik Aktivitesi</span>
+            <span style={{ fontSize: '0.875rem' }}>{t('lunar.activityScore')}</span>
             <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{todaySolunar.activityScore}/10</span>
           </div>
           <div style={{
@@ -110,9 +113,9 @@ export default function LunarTab({
             }}></div>
           </div>
           <div style={{ fontSize: '0.75rem', marginTop: '0.5rem', opacity: 0.8 }}>
-            {parseFloat(todaySolunar.activityScore) >= 8 ? 'Mukemmel av gunu!' :
-              parseFloat(todaySolunar.activityScore) >= 6 ? 'Iyi aktivite bekleniyor' :
-                'Orta duzey aktivite'}
+            {parseFloat(todaySolunar.activityScore) >= 8 ? (language === 'en' ? 'Excellent fishing day!' : 'Mukemmel av gunu!') :
+              parseFloat(todaySolunar.activityScore) >= 6 ? (language === 'en' ? 'Good activity expected' : 'Iyi aktivite bekleniyor') :
+                (language === 'en' ? 'Medium level activity' : 'Orta duzey aktivite')}
           </div>
         </div>
 
@@ -126,7 +129,7 @@ export default function LunarTab({
           }}>
             <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>🌄</div>
             <div style={{ fontSize: '1.125rem', fontWeight: 'bold' }}>{todaySolunar.moonrise}</div>
-            <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>Ay Dogusu</div>
+            <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>{t('lunar.moonrise')}</div>
           </div>
           <div style={{
             background: 'rgba(255,255,255,0.1)',
@@ -136,7 +139,7 @@ export default function LunarTab({
           }}>
             <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>🌙</div>
             <div style={{ fontSize: '1.125rem', fontWeight: 'bold' }}>{todaySolunar.moonset}</div>
-            <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>Ay Batisi</div>
+            <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>{t('lunar.moonset')}</div>
           </div>
         </div>
       </div>
@@ -150,7 +153,7 @@ export default function LunarTab({
         marginBottom: '1rem'
       }}>
         <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: theme.text, marginBottom: '1rem' }}>
-          En Iyi Avlanma Saatleri
+          {t('lunar.bestHours')}
         </h3>
 
         {/* Major Periyotlar */}
@@ -169,7 +172,7 @@ export default function LunarTab({
               fontSize: '0.75rem',
               fontWeight: 'bold'
             }}>MAJOR</span>
-            <span style={{ fontSize: '0.75rem', color: theme.textSecondary }}>2 saat - Yuksek aktivite</span>
+            <span style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{language === 'en' ? '2 hours - High activity' : '2 saat - Yuksek aktivite'}</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
             <div style={{
@@ -211,7 +214,7 @@ export default function LunarTab({
               fontSize: '0.75rem',
               fontWeight: 'bold'
             }}>MINOR</span>
-            <span style={{ fontSize: '0.75rem', color: theme.textSecondary }}>1 saat - Orta aktivite</span>
+            <span style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{language === 'en' ? '1 hour - Medium activity' : '1 saat - Orta aktivite'}</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
             <div style={{
@@ -251,12 +254,12 @@ export default function LunarTab({
         </h3>
 
         <div style={{ marginBottom: '0.75rem' }}>
-          <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '0.25rem' }}>Aktif Baliklar</div>
+          <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '0.25rem' }}>{t('lunar.activeFish')}</div>
           <div style={{ fontWeight: '600', color: isDarkMode ? '#60A5FA' : '#1E3A8A' }}>{moonTip.fish}</div>
         </div>
 
         <div style={{ marginBottom: '0.75rem' }}>
-          <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '0.25rem' }}>Tavsiye</div>
+          <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '0.25rem' }}>{t('lunar.recommendation')}</div>
           <div style={{ fontSize: '0.875rem', color: isDarkMode ? '#CBD5E1' : '#475569' }}>{moonTip.tip}</div>
         </div>
 
@@ -266,7 +269,7 @@ export default function LunarTab({
           borderRadius: '0.5rem',
           borderLeft: '3px solid #22C55E'
         }}>
-          <div style={{ fontSize: '0.75rem', color: isDarkMode ? '#86EFAC' : '#166534', marginBottom: '0.25rem' }}>Onerilen Yemler</div>
+          <div style={{ fontSize: '0.75rem', color: isDarkMode ? '#86EFAC' : '#166534', marginBottom: '0.25rem' }}>{t('lunar.recommendedBait')}</div>
           <div style={{ fontSize: '0.875rem', fontWeight: '600', color: isDarkMode ? '#86EFAC' : '#166534' }}>{moonTip.bait}</div>
         </div>
       </div>
@@ -279,7 +282,7 @@ export default function LunarTab({
         border: `1px solid ${theme.cardBorder}`
       }}>
         <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: theme.text, marginBottom: '1rem' }}>
-          Ay Fazlari Takvimi
+          {t('lunar.calendar')}
         </h3>
 
         <div style={{
@@ -287,7 +290,7 @@ export default function LunarTab({
           gridTemplateColumns: 'repeat(6, 1fr)',
           gap: '0.5rem'
         }}>
-          {getCalendarDays().map((day, idx) => (
+          {getCalendarDays(language).map((day, idx) => (
             <div
               key={idx}
               onClick={() => setSelectedDay(day)}
@@ -363,9 +366,7 @@ export default function LunarTab({
         fontSize: '0.875rem',
         color: isDarkMode ? '#93C5FD' : '#1E40AF'
       }}>
-        <strong>Solunar Teorisi:</strong> Baliklar ay ve gunesin konumuna gore belirli saatlerde daha aktif olur.
-        <strong> Major</strong> periyotlarda (ay tepe/dip noktasinda) en yuksek aktivite,
-        <strong> Minor</strong> periyotlarda (ay dogus/batis) orta duzey aktivite beklenir.
+        <strong>{t('lunar.solunarTheory')}:</strong> {t('lunar.solunarInfo')}
       </div>
     </div>
   )

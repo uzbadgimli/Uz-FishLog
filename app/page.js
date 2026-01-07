@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/app/context/AuthContext'
+import { useLanguage } from '@/app/context/LanguageContext'
 import AuthModal from './components/AuthModal'
 import { getTheme } from './utils/theme'
 import { getMoonPhase } from './utils/moonPhase'
@@ -37,6 +38,7 @@ const MapComponent = dynamic(() => import('./components/MapComponent'), {
 export default function Home() {
   // Auth
   const { user, loading: authLoading, signOut } = useAuth()
+  const { language } = useLanguage()
   const [showAuthModal, setShowAuthModal] = useState(false)
 
   const [activeTab, setActiveTab] = useState('home')
@@ -332,7 +334,7 @@ export default function Home() {
     }
   }
 
-  const moonPhase = getMoonPhase()
+  const moonPhase = getMoonPhase(language)
   
   // Bugünkü avları hesapla
   const today = new Date().toISOString().split('T')[0]

@@ -12,9 +12,10 @@
 
 #### 1. **Ana Sayfa (Dashboard)**
 - **Bugünkü Avlar vs Toplam İstatistik:** Yan yana kartlarda gösterim
-- **Hızlı Hava Durumu:** İstanbul/Marmara için anlık bilgi
+- **Hızlı Hava Durumu:** İstanbul Kartal varsayılan lokasyon
   - Sıcaklık, rüzgar hızı/yönü
-  - Dalga yüksekliği, nem, basınç (6 bilgi)
+  - Dalga yüksekliği (Marine API), nem, basınç (6 bilgi)
+  - Login olan kullanıcılar favorilerinden varsayılan lokasyon seçebilir
 - **Balık & Yem Önerileri:** Hava koşullarına göre otomatik öneri
   - Hangi balıklar aktif
   - Tavsiye edilen yemler (minnow, silikon, vs.)
@@ -130,7 +131,7 @@ app/
 ├── FishLog.module.css         # Tüm stiller
 ├── components/
 │   ├── layout/
-│   │   ├── Header.js          # Üst başlık (tema, ay fazı, kullanıcı)
+│   │   ├── Header.js          # Üst başlık (tema, ay fazı, dil, kullanıcı)
 │   │   └── TabNav.js          # Alt navigasyon (sticky)
 │   ├── tabs/
 │   │   ├── HomeTab.js         # Ana sayfa içeriği
@@ -142,10 +143,18 @@ app/
 │   │   └── AuthModal.js       # Giriş/Kayıt modalı
 │   └── map/
 │       └── MapComponent.js    # Leaflet harita (dynamic import)
+├── context/
+│   ├── AuthContext.js         # Kimlik doğrulama context
+│   └── LanguageContext.js     # Çoklu dil context (i18n)
 └── utils/
-    ├── fishSuggestions.js     # Balık/yem önerileri (50+ senaryo)
-    ├── moonPhase.js           # Ay fazı hesaplamaları
+    ├── fishSuggestions.js     # Balık/yem önerileri (50+ senaryo, çoklu dil)
+    ├── moonPhase.js           # Ay fazı hesaplamaları (çoklu dil)
+    ├── helpers.js             # Yardımcı fonksiyonlar
     └── supabase.js            # Supabase client
+
+locales/
+├── tr.json                    # Türkçe çeviriler
+└── en.json                    # İngilizce çeviriler
 ```
 
 **Refactoring Özeti:**
@@ -182,11 +191,25 @@ app/
 ## 🚧 Planlanan Özellikler
 
 ### Gelecek Geliştirmeler
+
+#### Öncelik 1 - Yakın Vadeli
 - [ ] Av silme/düzenleme özelliği
+- [x] Çoklu Dil Desteği (i18n) ✅
+  - [x] Türkçe (TR) - Tamamlandı
+  - [x] İngilizce (EN) - Tamamlandı
+  - [ ] Norveççe (NO) - Gelecek (İskandinav pazarı)
+  - [ ] Rusça (RU) - Gelecek (Doğu Avrupa pazarı)
+- [ ] Google OAuth entegrasyonu
+
+#### Öncelik 2 - Orta Vadeli
 - [ ] Fotoğraf ekleme (Supabase Storage)
-- [ ] Sosyal özellikler (paylaşım, liderlik tablosu)
 - [ ] PWA desteği (offline çalışma)
 - [ ] Push bildirimleri (ideal av zamanları)
+
+#### Öncelik 3 - Uzun Vadeli (Ticari)
+- [ ] Sosyal özellikler (paylaşım, liderlik tablosu)
+- [ ] Premium özellikler
+- [ ] Uluslararası pazara açılım (NO, RU dilleri)
 
 ---
 
@@ -198,11 +221,12 @@ app/
 - **Framework:** Next.js 16.1.1 (App Router)
 - **Dil:** JavaScript (React)
 - **Styling:** CSS Modules + Inline Styles
+- **Font:** Inter (Google Fonts) - Modern, profesyonel görünüm
 - **Harita:** Leaflet + React-Leaflet v5.0.0
 
 **Backend & Database:**
 - **Database:** Supabase (PostgreSQL)
-- **Authentication:** Supabase Auth (gelecekte)
+- **Authentication:** Supabase Auth (Email/Password + Google OAuth)
 
 **API'ler:**
 - **Hava Durumu:** OpenMeteo API (ücretsiz, API key gerektirmez)
@@ -250,16 +274,18 @@ CREATE POLICY "Users can CRUD own catches" ON catches
 ```sql
 CREATE TABLE fav_places (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id),  -- Kullanıcı ID
   name VARCHAR(100) NOT NULL,
   lat DECIMAL(10, 6) NOT NULL,
   lon DECIMAL(10, 6) NOT NULL,
+  is_default BOOLEAN DEFAULT false,        -- Varsayılan lokasyon
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- RLS Policy
+-- RLS Policy (kullanıcı bazlı erişim)
 ALTER TABLE fav_places ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow all operations" ON fav_places
-  FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Users can CRUD own favorites" ON fav_places
+  FOR ALL USING (auth.uid() = user_id);
 ```
 
 ---
@@ -274,7 +300,40 @@ CREATE POLICY "Allow all operations" ON fav_places
 
 ## 🔄 Versiyon Geçmişi
 
-### v1.5.0 (4 Ocak 2026) - Güncel
+### v1.6.0 (7 Ocak 2026) - Güncel
+- ✅ **Çoklu Dil Desteği (i18n)** 🌍
+  - Türkçe (TR) ve İngilizce (EN) tam destek
+  - LanguageContext ile global dil yönetimi
+  - JSON tabanlı çeviri dosyaları (locales/tr.json, locales/en.json)
+  - Header'da dil değiştirme butonu (🇹🇷/🇬🇧 bayraklar)
+  - Tüm tab'lerde çeviri desteği:
+    - Tab navigasyonu (Ana Sayfa, Avlarım, Hava, Aktivite, Analiz)
+    - Sayfa başlıkları ve alt başlıklar
+    - Form etiketleri ve placeholder'lar
+    - Hata mesajları ve bildirimler
+    - Auth modal (giriş/kayıt)
+  - Ay fazı isimleri dil desteği (Waxing Gibbous / Şişkin Ay)
+  - Takvim gün kısaltmaları (Mon, Tue / Pzt, Sal)
+  - Tarih formatları locale-aware (en-GB / tr-TR)
+  - Balık ve yem önerileri dil desteği
+
+### v1.5.1 (6 Ocak 2026)
+- ✅ **İstanbul Kartal Varsayılan Lokasyon**
+  - Ana sayfa hava durumu İstanbul Kartal'dan çekiliyor (40.8966, 29.1905)
+  - Login olan kullanıcılar favorilerinden varsayılan lokasyon seçebilir
+- ✅ **Marine API Ana Sayfada**
+  - Dalga verisi artık ana sayfada da gösteriliyor
+  - Ayrı endpoint: marine-api.open-meteo.com
+- ✅ **Inter Font**
+  - Modern, profesyonel görünüm için Inter font eklendi
+  - Google Fonts üzerinden yükleniyor
+- ✅ **Header/TabNav Fixed Layout**
+  - TopBar: 72px sabit yükseklik, position fixed
+  - TabNav: position fixed, top: 72px
+  - Content: padding-top: 140px
+  - Mobilde üst üste binme sorunu düzeltildi
+
+### v1.5.0 (4 Ocak 2026)
 - ✅ **Büyük Refactoring**
   - page.js: ~1900 satırdan ~385 satıra düşürüldü
   - 5 tab komponenti oluşturuldu (HomeTab, CatchesTab, WeatherTab, LunarTab, StatsTab)
@@ -316,9 +375,16 @@ CREATE POLICY "Allow all operations" ON fav_places
 ## 📚 Gelecek Adımlar
 
 ### Yakın Hedefler
-1. Mobil responsive testler
+1. ~~Çoklu Dil Desteği (TR + EN)~~ ✅ Tamamlandı
 2. Av silme/düzenleme özelliği
-3. Çok kullanıcılı sistem (login/register)
+3. Google OAuth entegrasyonu (devam ediyor)
+4. Ek diller (NO, RU)
+
+### Hedef Pazarlar
+- **Türkiye:** Ana pazar, Türkçe
+- **Uluslararası:** İngilizce ile global erişim
+- **İskandinav:** Norveç, İsveç, Danimarka (balıkçılık kültürü güçlü)
+- **Doğu Avrupa:** Rusya, Ukrayna (büyük balıkçı nüfusu)
 
 > **Not:** Detaylı versiyon geçmişi, deployment süreçleri ve teknik kararlar için `UZ-FISHLOG-ARSIV.md` dosyasına bakınız.
 
@@ -327,8 +393,8 @@ CREATE POLICY "Allow all operations" ON fav_places
 ## 👥 Proje Bilgileri
 
 **Geliştirici:** UZ FishLog Team (Uzbad)
-**Versiyon:** 1.5.0
-**Son Güncelleme:** 4 Ocak 2026
+**Versiyon:** 1.6.0
+**Son Güncelleme:** 7 Ocak 2026
 
 **GitHub:** https://github.com/uzbadgimli/Uz-FishLog
 **Domain:** http://falancayer.com

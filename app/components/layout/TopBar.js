@@ -1,6 +1,7 @@
 'use client'
 
 import styles from '@/app/FishLog.module.css'
+import { useLanguage } from '@/app/context/LanguageContext'
 
 export default function TopBar({
   weather,
@@ -12,14 +13,16 @@ export default function TopBar({
   setShowAuthModal,
   theme
 }) {
+  const { language, changeLanguage, t } = useLanguage()
+
   return (
     <div className={styles.topBar} style={{ background: theme.topBar }}>
       <div className={styles.topBarContent}>
         <div className={styles.logo}>
           <div className={styles.logoIcon}>🎣</div>
           <div className={styles.logoText}>
-            <h1>UZ FishLog</h1>
-            <p>Profesyonel Av Takip Sistemi</p>
+            <h1>{t('header.appName')}</h1>
+            <p>{t('header.subtitle')}</p>
           </div>
         </div>
         <div className={styles.quickInfo}>
@@ -30,6 +33,27 @@ export default function TopBar({
             </div>
           )}
           <div className={styles.moonIcon}>{moonPhase.icon}</div>
+
+          {/* Language Toggle */}
+          <button
+            onClick={() => changeLanguage(language === 'tr' ? 'en' : 'tr')}
+            style={{
+              background: isDarkMode ? '#334155' : 'rgba(255,255,255,0.2)',
+              border: 'none',
+              borderRadius: '0.5rem',
+              padding: '0.4rem 0.5rem',
+              cursor: 'pointer',
+              fontSize: '0.7rem',
+              marginLeft: '0.5rem',
+              color: 'white',
+              fontWeight: '600',
+              transition: 'all 0.3s'
+            }}
+            title={language === 'tr' ? 'Switch to English' : 'Türkçe\'ye geç'}
+          >
+            {language === 'tr' ? '🇬🇧 EN' : '🇹🇷 TR'}
+          </button>
+
           {/* Theme Toggle */}
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
@@ -43,7 +67,7 @@ export default function TopBar({
               marginLeft: '0.5rem',
               transition: 'all 0.3s'
             }}
-            title={isDarkMode ? 'Açık Tema' : 'Koyu Tema'}
+            title={isDarkMode ? t('common.lightTheme') : t('common.darkTheme')}
           >
             {isDarkMode ? '☀️' : '🌙'}
           </button>
@@ -67,7 +91,7 @@ export default function TopBar({
                 alignItems: 'center',
                 gap: '0.25rem'
               }}
-              title="Çıkış Yap"
+              title={t('common.logout')}
             >
               <span style={{ fontSize: '0.875rem' }}>👤</span>
               <span style={{ maxWidth: '60px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -89,7 +113,7 @@ export default function TopBar({
                 fontWeight: '600'
               }}
             >
-              Giriş Yap
+              {t('common.login')}
             </button>
           )}
         </div>

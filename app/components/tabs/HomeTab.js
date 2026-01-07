@@ -3,6 +3,7 @@
 import styles from '@/app/FishLog.module.css'
 import { getWeatherIcon, getWindDirection } from '@/app/utils/helpers'
 import { getFishSuggestion } from '@/app/utils/fishSuggestions'
+import { useLanguage } from '@/app/context/LanguageContext'
 
 export default function HomeTab({
   theme,
@@ -15,24 +16,26 @@ export default function HomeTab({
   userFavorites,
   setDefaultLocation
 }) {
+  const { t, language } = useLanguage()
+
   return (
     <div>
       <div className={styles.pageTitle}>
-        <h2 style={{ color: theme.text }}>Hos Geldin!</h2>
-        <p style={{ color: theme.textSecondary }}>Bugun nasil bir av gunu olacak?</p>
+        <h2 style={{ color: theme.text }}>{t('home.welcome')}</h2>
+        <p style={{ color: theme.textSecondary }}>{t('home.subtitle')}</p>
       </div>
 
       {/* Bugunku vs Toplam */}
       <div className={styles.statsContainer}>
         <div className={styles.todayCard}>
-          <h3>Bugun</h3>
+          <h3>{t('home.today')}</h3>
           <div className="number">{todaysCatches.length}</div>
-          <div className="label">Av Tutuldu</div>
+          <div className="label">{t('home.catchCount')}</div>
         </div>
         <div className={styles.totalCard}>
-          <h3>Toplam</h3>
+          <h3>{t('home.total')}</h3>
           <div className="number">{catches.length}</div>
-          <div className="label">Tum Avlar</div>
+          <div className="label">{t('home.allCatches')}</div>
         </div>
       </div>
 
@@ -55,9 +58,9 @@ export default function HomeTab({
                     fontSize: '0.75rem',
                     cursor: 'pointer'
                   }}
-                  title="Varsayilan lokasyonu degistir"
+                  title={t('home.changeLocation')}
                 >
-                  <option value="">Istanbul Kartal (Varsayilan)</option>
+                  <option value="">{t('home.defaultLocation')}</option>
                   {userFavorites.map(fav => (
                     <option key={fav.id} value={fav.id}>{fav.name}</option>
                   ))}
@@ -75,19 +78,19 @@ export default function HomeTab({
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
                 {Math.round(weather.current.temperature_2m)}°C
               </div>
-              <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Sicaklik</div>
+              <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{t('weather.temperature')}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
                 {Math.round(weather.current.wind_speed_10m)}
               </div>
-              <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Ruzgar (km/s)</div>
+              <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{t('weather.wind')}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
-                {getWindDirection(weather.current.wind_direction_10m)}
+                {getWindDirection(weather.current.wind_direction_10m, language)}
               </div>
-              <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Yon</div>
+              <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{t('weather.direction')}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
@@ -95,19 +98,19 @@ export default function HomeTab({
                   ? `${Math.round(weather.marine.wave_height[0] * 100)}cm`
                   : '0cm'}
               </div>
-              <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Dalga</div>
+              <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{t('weather.wave')}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
                 {Math.round(weather.current.relative_humidity_2m)}%
               </div>
-              <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Nem</div>
+              <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{t('weather.humidity')}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>
                 {Math.round(weather.current.pressure_msl)}
               </div>
-              <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Basinc</div>
+              <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{t('weather.pressure')}</div>
             </div>
           </div>
           <div style={{
@@ -116,17 +119,17 @@ export default function HomeTab({
             background: isDarkMode ? '#334155' : '#EFF6FF',
             borderRadius: '0.75rem'
           }}>
-            <h4 style={{ color: theme.text, marginBottom: '0.5rem' }}>Bu Havada Hangi Balik?</h4>
+            <h4 style={{ color: theme.text, marginBottom: '0.5rem' }}>{t('home.fishSuggestion')}</h4>
             <p style={{ marginBottom: '0.75rem', color: isDarkMode ? '#CBD5E1' : '#475569' }}>
-              {getFishSuggestion(weather.current.temperature_2m, weather.current.wind_speed_10m).fish}
+              {getFishSuggestion(weather.current.temperature_2m, weather.current.wind_speed_10m, language).fish}
             </p>
             <div style={{
               paddingTop: '0.75rem',
               borderTop: `1px solid ${isDarkMode ? '#475569' : 'rgba(30, 64, 175, 0.2)'}`
             }}>
-              <strong style={{ fontSize: '0.875rem', color: theme.text }}>Tavsiye Yem:</strong>
+              <strong style={{ fontSize: '0.875rem', color: theme.text }}>{t('home.baitSuggestion')}</strong>
               <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: isDarkMode ? '#CBD5E1' : '#475569' }}>
-                {getFishSuggestion(weather.current.temperature_2m, weather.current.wind_speed_10m).bait}
+                {getFishSuggestion(weather.current.temperature_2m, weather.current.wind_speed_10m, language).bait}
               </p>
             </div>
           </div>
@@ -138,19 +141,19 @@ export default function HomeTab({
         onClick={() => setActiveTab('catches')}
         className={styles.addButton}
       >
-        Yeni Av Ekle
+        {t('home.addCatch')}
       </button>
 
       {/* Son Avlar */}
       {catches.length > 0 && (
         <div className={styles.catchesCard} style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
           <div className={styles.catchesHeader}>
-            <h3 style={{ color: theme.text }}>Son Avlar</h3>
+            <h3 style={{ color: theme.text }}>{t('home.recentCatches')}</h3>
             <button
               onClick={() => setActiveTab('catches')}
               className={styles.viewAllButton}
             >
-              Tumunu Gor
+              {t('home.viewAll')}
             </button>
           </div>
           <div>

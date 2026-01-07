@@ -1,20 +1,23 @@
 'use client'
 
 import styles from '@/app/FishLog.module.css'
+import { useLanguage } from '@/app/context/LanguageContext'
 
-const tabs = [
-  { id: 'home', icon: '🏠', label: 'Ana Sayfa' },
-  { id: 'catches', icon: '🎣', label: 'Avlarım' },
-  { id: 'weather', icon: '🌊', label: 'Hava' },
-  { id: 'lunar', icon: '🌙', label: 'Aktivite' },
-  { id: 'stats', icon: '📊', label: 'Analiz' }
+const tabConfig = [
+  { id: 'home', icon: '🏠', labelKey: 'tabs.home' },
+  { id: 'catches', icon: '🎣', labelKey: 'tabs.catches' },
+  { id: 'weather', icon: '🌊', labelKey: 'tabs.weather' },
+  { id: 'lunar', icon: '🌙', labelKey: 'tabs.lunar' },
+  { id: 'stats', icon: '📊', labelKey: 'tabs.stats' }
 ]
 
 export default function TabNav({ activeTab, setActiveTab, theme }) {
+  const { t } = useLanguage()
+
   return (
     <div className={styles.tabNav} style={{ background: theme.tabNav }}>
       <div className={styles.tabNavContent}>
-        {tabs.map((tab) => (
+        {tabConfig.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -22,7 +25,7 @@ export default function TabNav({ activeTab, setActiveTab, theme }) {
           >
             {activeTab === tab.id && <div className={styles.tabIndicator}></div>}
             <span className={styles.tabIcon}>{tab.icon}</span>
-            <span className={styles.tabLabel}>{tab.label}</span>
+            <span className={styles.tabLabel}>{t(tab.labelKey)}</span>
           </button>
         ))}
       </div>
