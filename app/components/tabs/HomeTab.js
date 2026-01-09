@@ -121,7 +121,7 @@ export default function HomeTab({
           }}>
             <h4 style={{ color: theme.text, marginBottom: '0.5rem' }}>{t('home.fishSuggestion')}</h4>
             <p style={{ marginBottom: '0.75rem', color: isDarkMode ? '#CBD5E1' : '#475569' }}>
-              {getFishSuggestion(weather.current.temperature_2m, weather.current.wind_speed_10m, language).fish}
+              {getFishSuggestion(weather.current.temperature_2m, weather.current.wind_speed_10m, language, t).fish}
             </p>
             <div style={{
               paddingTop: '0.75rem',
@@ -129,7 +129,7 @@ export default function HomeTab({
             }}>
               <strong style={{ fontSize: '0.875rem', color: theme.text }}>{t('home.baitSuggestion')}</strong>
               <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: isDarkMode ? '#CBD5E1' : '#475569' }}>
-                {getFishSuggestion(weather.current.temperature_2m, weather.current.wind_speed_10m, language).bait}
+                {getFishSuggestion(weather.current.temperature_2m, weather.current.wind_speed_10m, language, t).bait}
               </p>
             </div>
           </div>

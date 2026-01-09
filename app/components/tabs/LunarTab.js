@@ -56,7 +56,7 @@ export default function LunarTab({
   }
 
   const todaySolunar = getSolunarData(new Date(), language)
-  const moonTip = getMoonFishSuggestion(todaySolunar.phase, language)
+  const moonTip = getMoonFishSuggestion(todaySolunar.phase, language, t)
 
   return (
     <div>

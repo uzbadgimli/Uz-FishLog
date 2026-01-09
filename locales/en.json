@@ -184,5 +184,311 @@
     "favoritesDeleteError": "Could not delete favorite",
     "catchAddError": "Could not add catch",
     "loginRequired": "Please login for this action"
+  },
+  "fish": {
+    "scenarios": {
+      "winterColdNight": {
+        "fish": "Night + Cold: Whiting active in deep waters. Sea bass hunting near rocky bottoms. Scorpionfish searching for bottom creatures.",
+        "bait": "Phosphorescent jig head (21-28gr), orange/red silicone, live squid pieces, glow shad for night"
+      },
+      "winterColdMorning": {
+        "fish": "Morning + Cold: Whiting and Sea bass starting morning activity. Turbot in sandy bottom areas. Ideal for bottom fishing.",
+        "bait": "Heavy silicone (motor oil color), 18-25gr jig head, live baitfish, slow pitch jig"
+      },
+      "winterColdCalm": {
+        "fish": "Calm winter day: Whiting schools gathered at bottom. Sea bass moving slowly. Turbot may be active.",
+        "bait": "Deep minnow (11-14cm), heavy metal jig, live bait preferred"
+      },
+      "winterColdWindy": {
+        "fish": "Cold + Windy: Sea bass approaching shore, bait organisms near coastline. Whiting waiting in deep waters.",
+        "bait": "Heavy jig head (21-28gr), large silicone fish, deep running minnow, live bait"
+      },
+      "winterStorm": {
+        "fish": "Winter storm: Sea bass and Mullet in sheltered harbors. Scorpionfish at breakwater bottoms.",
+        "bait": "Heavy silicone, live bait essential, bread for mullet, live baitfish"
+      },
+      "winterCoolMorning": {
+        "fish": "Ideal winter morning: Sea bass on morning hunt, Whiting active, Sea bream in deep waters. Golden hour!",
+        "bait": "11-14cm suspending minnow, silicone shad (motor oil), live bream, slow jig"
+      },
+      "winterCoolEvening": {
+        "fish": "Winter evening: Sea bass in evening activity, Dentex on rocks, Red porgy in deep reefs.",
+        "bait": "Minnow (natural colors), medium weight jig, live shrimp, squid pieces"
+      },
+      "winterCoolNight": {
+        "fish": "Winter night: Sea bass night fishing amazing! Whiting showing interest in phosphorescent lures. Check around lights.",
+        "bait": "Phosphorescent silicone, glow minnow, live bait, scan around lanterns"
+      },
+      "winterCoolMid": {
+        "fish": "Winter midday: Sea bass and Whiting active. Sea bream in deep areas. Patience required.",
+        "bait": "Minnow, silicone shad, try live bait combination"
+      },
+      "winterCoolWindy": {
+        "fish": "Windy winter: Sea bass very active on shores! Wind pushing bait to coast. Don't miss the chance!",
+        "bait": "Deep running minnow, heavy jig head (14-21gr), large silicone fish"
+      },
+      "winterCoolStorm": {
+        "fish": "Stormy winter: Sea bass, Mullet and Scorpionfish in sheltered harbors. Breakwaters productive.",
+        "bait": "Heavy silicone, live bait, bread (for mullet), breakwater bottoms"
+      },
+      "winterMildCalm": {
+        "fish": "Mild winter day: Sea bass, Sea bream, Dentex very active! Bluefish occasionally seen. Mid-winter surprise!",
+        "bait": "11-14cm minnow (natural colors), stick bait, popper, live horse mackerel"
+      },
+      "winterMildWindy": {
+        "fish": "Mild and windy winter: Sea bass on rocks, Sea bream at current spots, Mullet on shores.",
+        "bait": "Minnow, silicone, bread for mullet, target current areas"
+      },
+      "springCoolMorning": {
+        "fish": "Spring morning: Sea bass waking up, Sea bream seeking warm water, Bluefish approaching shores!",
+        "bait": "Minnow (bright colors), silicone shad, popper, live baitfish"
+      },
+      "springCoolEvening": {
+        "fish": "Spring evening: Sea bass active in evening hunt, Bluefish in schools, Dentex on rocks.",
+        "bait": "Stick bait, popper, metal jig 20-30gr, live horse mackerel"
+      },
+      "springCoolMid": {
+        "fish": "Spring midday: Sea bass, Sea bream active. Bluefish starting to appear. Season opening!",
+        "bait": "Minnow, silicone, try popper, live bait always works"
+      },
+      "springCoolWindy": {
+        "fish": "Windy spring: Sea bass and Bluefish very active on shores! Wind bringing bait.",
+        "bait": "Heavy minnow, metal jig, large silicone, try surface lures"
+      },
+      "springCoolStorm": {
+        "fish": "Stormy spring: Sea bass, Mullet in sheltered areas. After storm is golden!",
+        "bait": "Heavy jig, live bait, wait for after the storm"
+      },
+      "springIdealMorning": {
+        "fish": "GOLDEN MORNING! Sea bass, Sea bream, Bluefish, Bonito all active! Best time of the season!",
+        "bait": "Any lure works: minnow, popper, jig, live bait. Action guaranteed!"
+      },
+      "springIdealEvening": {
+        "fish": "GOLDEN EVENING! Bluefish attacking in schools, Sea bass on rocks, Bonito on surface!",
+        "bait": "Popper, stick bait, metal jig, sabiki rig, live horse mackerel"
+      },
+      "springIdealNight": {
+        "fish": "Spring night: Sea bass night fishing spectacular, Squid season opened, Red mullet active.",
+        "bait": "Phosphorescent minnow, squid jig (egi), live shrimp, night jig"
+      },
+      "springIdealMid": {
+        "fish": "Perfect spring: ALL FISH ACTIVE! Sea bass, Sea bream, Bluefish, Dentex, Red porgy...",
+        "bait": "Minnow, popper, jig, live bait - try everything!"
+      },
+      "springIdealWindy": {
+        "fish": "Windy but productive: Bluefish going crazy! Sea bass close to shore. Bonito in schools.",
+        "bait": "Metal jig 30-50gr, large popper, trolling lure, sabiki"
+      },
+      "springIdealStorm": {
+        "fish": "Strong wind: Great for Bluefish and Bonito! Sea bass very active on shore!",
+        "bait": "Heavy metal jig, large silicone, deep minnow"
+      },
+      "springWarmCalm": {
+        "fish": "Pre-summer: Sea bream, Horse mackerel, Chub mackerel active. Bluefish better at night. Red porgy in depths.",
+        "bait": "Small minnow (7-9cm), micro jig, sabiki, live shrimp"
+      },
+      "springWarmWindy": {
+        "fish": "Hot and windy: Surface fish (Bluefish, Horse mackerel, Chub mackerel) active. Fish morning/evening.",
+        "bait": "Popper, small metal jig, sabiki rig, stick bait"
+      },
+      "summerMildNight": {
+        "fish": "Golden summer night: Sea bass active at night, Squid fishing ideal, Red porgy and Comber at bottom.",
+        "bait": "Phosphorescent silicone, squid jig (egi), night minnow, live shrimp"
+      },
+      "summerMildMorning": {
+        "fish": "Early summer morning: Sea bass at sunrise, Sea bream doesn't like heat - fish early!",
+        "bait": "Minnow, silicone, popper - finish before sun rises"
+      },
+      "summerMildEvening": {
+        "fish": "Summer evening: Sea bass, Bluefish, Horse mackerel activating with temperature drop. Fish evenings!",
+        "bait": "Popper, stick bait, minnow, live bait"
+      },
+      "summerMildMidday": {
+        "fish": "Hot midday: Fish retreating to deep, cool waters. Midday fishing difficult.",
+        "bait": "Deep jig, live bait, target shaded areas"
+      },
+      "summerMildWindy": {
+        "fish": "Windy summer: Horse mackerel, Chub mackerel, Bluefish on surface! Sea breeze time!",
+        "bait": "Sabiki, popper, metal jig, live smelt"
+      },
+      "summerHotNight": {
+        "fish": "Hot summer night: NIGHT FISHING ESSENTIAL! Sea bass, Squid, Red mullet, Red porgy active at night.",
+        "bait": "Any phosphorescent lure, squid egi, live shrimp, night jig"
+      },
+      "summerHotMorning": {
+        "fish": "Hot morning: Only 1-2 hours before sunrise! Fish go deeper after that.",
+        "bait": "Fish fast - minnow, popper, live bait"
+      },
+      "summerHotMidday": {
+        "fish": "Very hot day: Midday fishing very difficult. Night or very early morning only chance.",
+        "bait": "Deep water lures, live bait, plan for night fishing"
+      },
+      "summerHotWindy": {
+        "fish": "Hot but windy: Horse mackerel, Chub mackerel schools on surface. Bluefish may come out in evening.",
+        "bait": "Sabiki, micro jig, popper, wait for evening"
+      },
+      "summerVeryHotNight": {
+        "fish": "Scorching night: Night fishing only option! Sea bass, Squid, bottom fish active.",
+        "bait": "Full phosphorescent gear, squid egi, live bait"
+      },
+      "summerVeryHotDay": {
+        "fish": "Extreme heat: Fishing very difficult. Prefer night fishing or go to very deep waters.",
+        "bait": "Deep water jig, live bait, wait for night"
+      },
+      "autumnEarlyMorning": {
+        "fish": "Golden autumn morning: Bluefish in frenzy! Bonito schools! Sea bass on rocks!",
+        "bait": "Metal jig, popper, minnow, sabiki - everything works!"
+      },
+      "autumnEarlyEvening": {
+        "fish": "Spectacular autumn evening: Bluefish in attack mode, Bonito ideal for trolling, Sea bass active!",
+        "bait": "Popper, stick bait, trolling lure, metal jig 30-50gr"
+      },
+      "autumnEarlyMid": {
+        "fish": "AUTUMN SEASON! Bluefish, Bonito, Sea bass, Sea bream - most productive time of year!",
+        "bait": "Any artificial lure, live horse mackerel, sabiki, trolling lure"
+      },
+      "autumnEarlyWindy": {
+        "fish": "Windy autumn: Bluefish and Bonito going crazy! Sea bass gone wild on shore!",
+        "bait": "Heavy jig, large popper, trolling, large minnow"
+      },
+      "autumnCoolMorning": {
+        "fish": "Cool autumn morning: Sea bass, Sea bream main activity time. Bluefish still around. Whiting arriving!",
+        "bait": "Minnow (11-14cm), silicone shad, live baitfish, jig"
+      },
+      "autumnCoolEvening": {
+        "fish": "Autumn evening: Sea bass evening exit amazing, Bluefish last attacks, Dentex on rocks.",
+        "bait": "Stick bait, popper, minnow, live horse mackerel"
+      },
+      "autumnCoolMid": {
+        "fish": "Cool autumn day: Sea bass and Sea bream very active. Bluefish decreasing. Whiting increasing.",
+        "bait": "Minnow, silicone, live bait - classic gear"
+      },
+      "autumnCoolWindy": {
+        "fish": "Windy autumn: Sea bass stuck to shore! Attacks anything that moves!",
+        "bait": "Large silicone, heavy minnow, live bait"
+      },
+      "autumnColdCalm": {
+        "fish": "Late autumn: Whiting season opened! Sea bass retreating to deep waters. Turbot active.",
+        "bait": "Heavy jig, deep minnow, live bait, slow pitch jig"
+      },
+      "autumnColdWindy": {
+        "fish": "Cold and windy autumn: Good for Whiting and Sea bass! Winter preparation started.",
+        "bait": "Heavy silicone, jig head 18-25gr, live baitfish"
+      },
+      "morning": {
+        "fish": "Morning hours: Sea bass, Sea bream, Bluefish expected to be active. Golden hour!",
+        "bait": "Minnow, silicone, popper - classic morning gear"
+      },
+      "evening": {
+        "fish": "Evening hours: Fish coming out for dinner. Sea bass, Bluefish, Horse mackerel active.",
+        "bait": "Popper, stick bait, minnow - ideal for evening"
+      },
+      "night": {
+        "fish": "Night fishing: Sea bass, Squid, Red mullet active at night. Check around lights.",
+        "bait": "Phosphorescent lures, squid egi, live shrimp"
+      },
+      "default": {
+        "fish": "General conditions: Sea bass, Sea bream, Bluefish, Horse mackerel may be active. Fish according to conditions.",
+        "bait": "11-14cm minnow, silicone fish, popper, metal jig - variety is key"
+      }
+    },
+    "moon": {
+      "newMoon": {
+        "title": "New Moon - BEST PERIOD!",
+        "night": {
+          "fish": "GOLDEN NIGHT FISHING! Sea bass, Sea bream, Bluefish hunting in darkness. Squid very active!",
+          "tip": "Total darkness - fish feel safe and come to surface. Phosphorescent lures essential!"
+        },
+        "day": {
+          "fish": "New moon daytime: Sea bass, Sea bream in deep waters. Wait for evening and night!",
+          "tip": "Daytime activity low. Plan for night fishing. Fish very early morning or evening."
+        },
+        "bait": "Phosphorescent silicone, glow minnow, live bait, squid egi"
+      },
+      "waxingCrescent": {
+        "title": "Waxing Crescent - Good Period",
+        "night": {
+          "fish": "High night activity: Sea bass, Whiting, Sea bream active. Low light is advantage!",
+          "tip": "Little moonlight - fish still have night advantage. Morning and evening also good."
+        },
+        "day": {
+          "fish": "Daytime: Sunrise and sunset most productive. Sea bass on rocks.",
+          "tip": "Little moonlight - fish still have night advantage. Morning and evening also good."
+        },
+        "bait": "Natural color minnow, silicone shad, live baitfish, medium weight jig"
+      },
+      "firstQuarter": {
+        "title": "First Quarter - Medium Activity",
+        "night": {
+          "fish": "Sea bream, Horse mackerel, Red mullet at medium activity. Sea bass feeding selectively.",
+          "tip": "Early morning hours more productive. Evening activity may decrease. Patience required."
+        },
+        "day": {
+          "fish": "Sea bream, Horse mackerel, Red mullet at medium activity. Sea bass feeding selectively.",
+          "tip": "Early morning hours more productive. Evening activity may decrease. Patience required."
+        },
+        "bait": "Small minnow, sabiki, live shrimp, prefer natural colors"
+      },
+      "waxingGibbous": {
+        "title": "Approaching Full Moon - Increasing Activity",
+        "night": {
+          "fish": "Sea bass, Bluefish, Chub mackerel starting to activate! Full moon preparation.",
+          "tip": "Getting better each day! Evening hours increasingly productive. Prepare for night fishing."
+        },
+        "day": {
+          "fish": "Sea bass, Bluefish, Chub mackerel starting to activate! Full moon preparation.",
+          "tip": "Getting better each day! Evening hours increasingly productive. Prepare for night fishing."
+        },
+        "bait": "Popper, stick bait, metal jig, bright colors effective"
+      },
+      "fullMoon": {
+        "title": "FULL MOON - PEAK ACTIVITY!",
+        "night": {
+          "fish": "NIGHT FISHING SPECTACULAR! ALL FISH on surface in moonlight! Schools visible!",
+          "tip": "Moonlight illuminating the sea - fish feeding comfortably. Silver/white lures!"
+        },
+        "day": {
+          "fish": "Full moon daytime: Activity still high. Can fish all day!",
+          "tip": "Full moon effect continues during day. Evening and night even better!"
+        },
+        "bait": "Surface lures, popper, silver/white minnow, bright jig, live bait"
+      },
+      "waningGibbous": {
+        "title": "After Full Moon - Still Very Good",
+        "night": {
+          "fish": "Night still productive: Sea bass, Sea bream, Bonito active. Moonlight decreasing.",
+          "tip": "Full moon effect lasts 2-3 days. Night fishing still recommended."
+        },
+        "day": {
+          "fish": "Daytime good: Morning especially productive. Activity continues.",
+          "tip": "Full moon effect lasts 2-3 days. Night fishing still recommended."
+        },
+        "bait": "Minnow, silicone, trolling lure, live horse mackerel"
+      },
+      "lastQuarter": {
+        "title": "Last Quarter - Decreasing Activity",
+        "night": {
+          "fish": "Whiting, Red mullet, Scorpionfish (bottom fish) coming forward. Surface activity low.",
+          "tip": "Bottom fishing more productive. Early morning hours. Target deep waters."
+        },
+        "day": {
+          "fish": "Whiting, Red mullet, Scorpionfish (bottom fish) coming forward. Surface activity low.",
+          "tip": "Bottom fishing more productive. Early morning hours. Target deep waters."
+        },
+        "bait": "Heavy jig, live bait, squid pieces, bottom rigs"
+      },
+      "waningCrescent": {
+        "title": "Waning Crescent - New Moon Preparation",
+        "night": {
+          "fish": "Darkness increasing: Sea bass, Whiting starting to activate at night!",
+          "tip": "Activity starting to increase. Prepare for night fishing! New Moon approaching."
+        },
+        "day": {
+          "fish": "Daytime slow: Activity low. Wait for New Moon or fish at night.",
+          "tip": "Activity starting to increase. Prepare for night fishing! New Moon approaching."
+        },
+        "bait": "Phosphorescent lures, deep minnow, silicone, night gear"
+      }
+    }
   }
 }
