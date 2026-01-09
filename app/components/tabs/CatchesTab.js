@@ -23,11 +23,40 @@ export default function CatchesTab({
   setHuntTime,
   notes,
   setNotes,
+  // Photo state
+  photoFile,
+  setPhotoFile,
+  photoPreview,
+  setPhotoPreview,
+  uploadingPhoto,
   // Handlers
   addCatch,
   setShowAuthModal
 }) {
   const { t, language } = useLanguage()
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    // Max 5MB
+    if (file.size > 5 * 1024 * 1024) {
+      alert(t('catches.maxFileSize'))
+      return
+    }
+
+    setPhotoFile(file)
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setPhotoPreview(reader.result)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const removePhoto = () => {
+    setPhotoFile(null)
+    setPhotoPreview(null)
+  }
 
   return (
     <div>
@@ -161,8 +190,92 @@ export default function CatchesTab({
                 />
               </div>
 
-              <button type="submit" className={styles.submitButton}>
-                {t('catches.submit')}
+              {/* Fotograf Yukleme */}
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>{t('catches.photo')}</label>
+                {!photoPreview ? (
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    padding: '1.5rem',
+                    background: theme.inputBg,
+                    border: `2px dashed ${theme.inputBorder}`,
+                    borderRadius: '0.75rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}>
+                    <span style={{ fontSize: '1.5rem' }}>📷</span>
+                    <span style={{ color: theme.textSecondary }}>{t('catches.addPhoto')}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                ) : (
+                  <div style={{
+                    position: 'relative',
+                    borderRadius: '0.75rem',
+                    overflow: 'hidden'
+                  }}>
+                    <img
+                      src={photoPreview}
+                      alt="Preview"
+                      style={{
+                        width: '100%',
+                        maxHeight: '200px',
+                        objectFit: 'cover',
+                        borderRadius: '0.75rem'
+                      }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '0.5rem',
+                      right: '0.5rem',
+                      display: 'flex',
+                      gap: '0.5rem'
+                    }}>
+                      <label style={{
+                        padding: '0.5rem 0.75rem',
+                        background: 'rgba(0,0,0,0.7)',
+                        color: 'white',
+                        borderRadius: '0.5rem',
+                        fontSize: '0.875rem',
+                        cursor: 'pointer'
+                      }}>
+                        {t('catches.changePhoto')}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoChange}
+                          style={{ display: 'none' }}
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={removePhoto}
+                        style={{
+                          padding: '0.5rem 0.75rem',
+                          background: 'rgba(239,68,68,0.9)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '0.5rem',
+                          fontSize: '0.875rem',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {t('catches.removePhoto')}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <button type="submit" className={styles.submitButton} disabled={uploadingPhoto}>
+                {uploadingPhoto ? t('catches.uploadingPhoto') : t('catches.submit')}
               </button>
             </form>
           </div>
@@ -239,6 +352,26 @@ export default function CatchesTab({
                         }
                       </span>
                     </div>
+
+                    {/* Fotograf */}
+                    {c.photo_url && (
+                      <div style={{
+                        marginTop: '0.75rem',
+                        paddingTop: '0.75rem',
+                        borderTop: `1px solid ${theme.cardBorder}`
+                      }}>
+                        <img
+                          src={c.photo_url}
+                          alt={c.species}
+                          style={{
+                            width: '100%',
+                            maxHeight: '200px',
+                            objectFit: 'cover',
+                            borderRadius: '0.5rem'
+                          }}
+                        />
+                      </div>
+                    )}
 
                     {/* Not */}
                     {c.notes && (

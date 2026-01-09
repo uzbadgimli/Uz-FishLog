@@ -155,6 +155,9 @@ app/
 locales/
 ├── tr.json                    # Türkçe çeviriler
 └── en.json                    # İngilizce çeviriler
+
+config/
+└── fish-suggestions.json      # Balık önerisi parametreleri
 ```
 
 **Refactoring Özeti:**
@@ -202,7 +205,7 @@ locales/
 - [ ] Google OAuth entegrasyonu
 
 #### Öncelik 2 - Orta Vadeli
-- [ ] Fotoğraf ekleme (Supabase Storage)
+- [x] Fotoğraf ekleme (Supabase Storage) ✅
 - [ ] PWA desteği (offline çalışma)
 - [ ] Push bildirimleri (ideal av zamanları)
 
@@ -300,7 +303,24 @@ CREATE POLICY "Users can CRUD own favorites" ON fav_places
 
 ## 🔄 Versiyon Geçmişi
 
-### v1.6.0 (7 Ocak 2026) - Güncel
+### v1.7.0 (9 Ocak 2026) - Güncel
+- ✅ **Fotoğraf Yükleme Özelliği** 📷
+  - Supabase Storage entegrasyonu (catch-photos bucket)
+  - Av kayıtlarına fotoğraf ekleme
+  - Fotoğraf önizleme, değiştirme ve kaldırma
+  - Max 5MB dosya boyutu kontrolü
+  - Av listesinde fotoğraf gösterimi
+  - Kullanıcı bazlı erişim kontrolü (RLS)
+  - Çoklu dil desteği (TR/EN)
+
+### v1.6.1 (9 Ocak 2026)
+- ✅ **Fish Suggestions Refactoring**
+  - fishSuggestions.js: 736 satır -> 65 satır (10x küçültme)
+  - Parametrik JSON yapısı: config/fish-suggestions.json
+  - Çeviriler locales/*.json içine taşındı
+  - Yeni dil eklemek artık sadece JSON çevirisi gerektiriyor
+
+### v1.6.0 (7 Ocak 2026)
 - ✅ **Çoklu Dil Desteği (i18n)** 🌍
   - Türkçe (TR) ve İngilizce (EN) tam destek
   - LanguageContext ile global dil yönetimi
@@ -393,8 +413,8 @@ CREATE POLICY "Users can CRUD own favorites" ON fav_places
 ## 👥 Proje Bilgileri
 
 **Geliştirici:** UZ FishLog Team (Uzbad)
-**Versiyon:** 1.6.0
-**Son Güncelleme:** 7 Ocak 2026
+**Versiyon:** 1.7.0
+**Son Güncelleme:** 9 Ocak 2026
 
 **GitHub:** https://github.com/uzbadgimli/Uz-FishLog
 **Domain:** http://falancayer.com

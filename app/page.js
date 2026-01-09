@@ -71,6 +71,9 @@ export default function Home() {
   const [notes, setNotes] = useState('')
   const [huntDate, setHuntDate] = useState(new Date().toISOString().split('T')[0])
   const [huntTime, setHuntTime] = useState(new Date().toTimeString().slice(0, 5))
+  const [photoFile, setPhotoFile] = useState(null)
+  const [photoPreview, setPhotoPreview] = useState(null)
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
 
   // Varsayilan lokasyon state (kullanici icin)
   const [defaultUserLocation, setDefaultUserLocation] = useState(null)
@@ -294,12 +297,41 @@ export default function Home() {
     fetchUserFavorites()
   }, [user])
 
+  async function uploadPhoto(file) {
+    if (!file || !user) return null
+
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${user.id}/${Date.now()}.${fileExt}`
+
+    const { data, error } = await supabase.storage
+      .from('catch-photos')
+      .upload(fileName, file)
+
+    if (error) {
+      console.error('Photo upload error:', error)
+      return null
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('catch-photos')
+      .getPublicUrl(fileName)
+
+    return urlData?.publicUrl || null
+  }
+
   async function addCatch(e) {
     e.preventDefault()
 
     if (!user) {
       alert('Av eklemek için giriş yapmalısınız')
       return
+    }
+
+    setUploadingPhoto(true)
+    let photoUrl = null
+
+    if (photoFile) {
+      photoUrl = await uploadPhoto(photoFile)
     }
 
     const huntDateTime = `${huntDate}T${huntTime}:00`
@@ -314,9 +346,12 @@ export default function Home() {
           location: location,
           notes: notes || null,
           hunt_date: huntDateTime,
-          user_id: user.id
+          user_id: user.id,
+          photo_url: photoUrl
         }
       ])
+
+    setUploadingPhoto(false)
 
     if (error) {
       console.error('Insert error:', error)
@@ -329,6 +364,8 @@ export default function Home() {
       setNotes('')
       setHuntDate(new Date().toISOString().split('T')[0])
       setHuntTime(new Date().toTimeString().slice(0, 5))
+      setPhotoFile(null)
+      setPhotoPreview(null)
       fetchCatches()
       setActiveTab('home')
     }
@@ -419,6 +456,11 @@ export default function Home() {
             setNotes={setNotes}
             addCatch={addCatch}
             setShowAuthModal={setShowAuthModal}
+            photoFile={photoFile}
+            setPhotoFile={setPhotoFile}
+            photoPreview={photoPreview}
+            setPhotoPreview={setPhotoPreview}
+            uploadingPhoto={uploadingPhoto}
           />
         )}
 

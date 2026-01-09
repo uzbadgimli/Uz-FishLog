@@ -81,7 +81,14 @@
     "noCatches": "Henüz av kaydınız yok",
     "addFirst": "İlk avınızı ekleyin!",
     "allCatches": "Tüm Avlar",
-    "loginRequired": "Av eklemek için giriş yapmalısınız"
+    "loginRequired": "Av eklemek için giriş yapmalısınız",
+    "photo": "Fotoğraf",
+    "addPhoto": "Fotoğraf Ekle",
+    "changePhoto": "Değiştir",
+    "removePhoto": "Kaldır",
+    "uploadingPhoto": "Yükleniyor...",
+    "photoError": "Fotoğraf yüklenemedi",
+    "maxFileSize": "Maksimum dosya boyutu: 5MB"
   },
   "lunar": {
     "title": "Balık Aktivite Takvimi",

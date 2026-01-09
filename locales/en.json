@@ -81,7 +81,14 @@
     "noCatches": "No catches recorded yet",
     "addFirst": "Add your first catch!",
     "allCatches": "All Catches",
-    "loginRequired": "Please login to add catches"
+    "loginRequired": "Please login to add catches",
+    "photo": "Photo",
+    "addPhoto": "Add Photo",
+    "changePhoto": "Change",
+    "removePhoto": "Remove",
+    "uploadingPhoto": "Uploading...",
+    "photoError": "Failed to upload photo",
+    "maxFileSize": "Maximum file size: 5MB"
   },
   "lunar": {
     "title": "Fish Activity Calendar",
