@@ -207,19 +207,113 @@ uz-fishlog/
 
 ---
 
-## 📚 Uzun Vadeli Gelecek Adımlar
+## 📱 Mobil Uygulama Geçiş Analizi (12 Ocak 2026)
 
-### Orta Vadeli
-1. Çok kullanıcılı sistem (login)
-2. Kullanıcı bazlı favori yerler
-3. Fotoğraf yükleme
+### Mevcut Durum Değerlendirmesi
 
-### Uzun Vadeli
-1. PWA desteği
-2. Offline mod
-3. Bildirim sistemi
-4. Sosyal özellikler
+Web uygulaması v1.7.0'a ulaştı ve tüm temel özellikler tamamlandı. Ancak:
+- PWA olarak kullanımda UI sorunları var (yazılar kayıyor, ikonlar üst üste biniyor)
+- Kullanıcı geri bildirimi: "App Store'dan indiremezlersem kullanmayacaklar"
+- Ticari potansiyel için native mobil uygulama şart
+
+### Platform Seçenek Analizi
+
+| Seçenek | Kod Yeniden Kullanım | Öğrenme Eğrisi | App Store | Performans |
+|---------|---------------------|----------------|-----------|------------|
+| **React Native (Expo)** | %40-50 | Düşük (React bilgisi var) | ✅ Evet | İyi |
+| **Flutter** | %0 (Dart öğrenmek lazım) | Yüksek | ✅ Evet | Çok İyi |
+| **Capacitor/Ionic** | %70-80 | Çok Düşük | ✅ Evet | Orta |
+| **PWA Geliştir** | %100 | Yok | ❌ Hayır | Düşük |
+
+### Seçilen Yaklaşım: React Native (Expo)
+
+**Neden Expo?**
+1. Mevcut React/JavaScript bilgisi direkt kullanılabilir
+2. Tek kod tabanından iOS + Android + Web çıktısı
+3. Supabase JS kütüphanesi React Native'de çalışır
+4. OTA (Over-the-Air) güncelleme desteği
+
+**%100 Taşınabilir Kodlar:**
+- `utils/moonPhase.js` - Ay fazı hesaplamaları
+- `utils/fishSuggestions.js` - Balık öneri algoritması
+- `utils/theme.js` - Renk paleti
+- `utils/helpers.js` - Yardımcı fonksiyonlar
+- `config/fish-suggestions.json` - 53+ senaryo
+- `locales/tr.json`, `locales/en.json` - Çeviriler
+
+**Adapte Edilecek Kodlar:**
+- `context/AuthContext.js` - localStorage → AsyncStorage
+- `context/LanguageContext.js` - localStorage → AsyncStorage
+- `lib/supabase.js` - React Native config eklenmeli
+
+**Yeniden Yazılacaklar:**
+- Tüm UI bileşenleri (CSS → StyleSheet)
+- Navigation (Expo Router)
+- Harita (Leaflet → react-native-maps)
+- Fotoğraf (File input → expo-image-picker)
+
+### Proje Yapısı Kararı
+
+**Ayrı Klasör/Repo** seçildi:
+- `uz-fishlog/` - Mevcut web projesi (korunacak)
+- `uz-fishlog-mobile/` - Yeni Expo projesi
+
+### Planlanan Teknoloji Stack
+
+```
+Framework:     Expo SDK 52+
+Routing:       Expo Router v4
+Styling:       React Native StyleSheet
+State:         React Context (mevcut yapı)
+Backend:       Supabase (aynı proje)
+Maps:          react-native-maps
+Charts:        react-native-chart-kit
+Image Picker:  expo-image-picker
+Storage:       AsyncStorage
+```
 
 ---
 
-**📁 Arşiv Dosyası - Son Güncelleme: 30 Aralık 2025**
+## 🔄 Tamamlanan Özellikler Özeti (Web v1.7.0)
+
+### v1.0 - v1.3 (Aralık 2025)
+- ✅ Temel av kayıt sistemi
+- ✅ Supabase entegrasyonu
+- ✅ Hava durumu API
+- ✅ Dark/Light tema
+- ✅ Solunar hesaplama
+- ✅ Favori lokasyonlar
+
+### v1.4 - v1.5 (Ocak 2026)
+- ✅ Leaflet harita entegrasyonu
+- ✅ Kullanıcı kimlik doğrulama (Auth)
+- ✅ Tab bazlı erişim kontrolü
+- ✅ Büyük refactoring (~1900 → ~385 satır)
+- ✅ Marine API entegrasyonu
+- ✅ Inter font
+
+### v1.6 - v1.7 (Ocak 2026)
+- ✅ Çoklu dil desteği (TR/EN)
+- ✅ Fish suggestions parametrik JSON
+- ✅ Fotoğraf yükleme (Supabase Storage)
+- ✅ RLS güvenlik politikaları
+
+---
+
+## 📚 Uzun Vadeli Gelecek Adımlar (Arşivlendi)
+
+### Tamamlananlar ✅
+1. ~~Çok kullanıcılı sistem (login)~~ ✅ v1.5.0
+2. ~~Kullanıcı bazlı favori yerler~~ ✅ v1.4.0
+3. ~~Fotoğraf yükleme~~ ✅ v1.7.0
+4. ~~Çoklu dil desteği~~ ✅ v1.6.0
+
+### Mobil Uygulamaya Taşınanlar
+1. PWA desteği → Native uygulama olarak çözülecek
+2. Offline mod → Gerekli değil (kullanıcı kararı)
+3. Push bildirimleri → expo-notifications ile
+4. Sosyal özellikler → Mobil sonrası değerlendirilecek
+
+---
+
+**📁 Arşiv Dosyası - Son Güncelleme: 12 Ocak 2026**

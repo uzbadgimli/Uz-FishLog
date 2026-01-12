@@ -191,28 +191,88 @@ config/
 
 ---
 
-## 🚧 Planlanan Özellikler
+## 🚧 Mevcut Durum ve Sonraki Adımlar
 
-### Gelecek Geliştirmeler
+### Web Uygulaması Durumu (v1.7.0) ✅
 
-#### Öncelik 1 - Yakın Vadeli
+Tüm temel özellikler tamamlandı:
+- [x] Av kayıt sistemi (CRUD)
+- [x] Kullanıcı kimlik doğrulama
+- [x] Hava & deniz durumu
+- [x] Ay fazı ve solunar takvim
+- [x] İstatistikler ve grafikler
+- [x] Fotoğraf yükleme
+- [x] Çoklu dil (TR/EN)
+- [x] Dark/Light tema
+
+**Bilinen Sorunlar:**
+- PWA modunda responsive sorunlar (yazılar kayıyor, ikonlar üst üste)
+- Kullanıcı geri bildirimi: App Store yayını olmadan kullanım düşük
+
+---
+
+### 📱 Sonraki Büyük Adım: Mobil Uygulama
+
+**Karar:** React Native (Expo) ile native mobil uygulama geliştirilecek
+
+**Hedef Platformlar:**
+- iOS (App Store)
+- Android (Play Store)
+- Web (Expo Web - opsiyonel)
+
+**Proje Yapısı:**
+```
+~/Development/
+├── uz-fishlog/          ← Mevcut web (korunuyor)
+└── uz-fishlog-mobile/   ← Yeni Expo projesi
+```
+
+### Mobil Uygulama Geliştirme Fazları
+
+#### Faz 1: Proje Kurulumu
+- [ ] Expo projesi oluştur
+- [ ] Supabase React Native client kurulumu
+- [ ] Expo Router kurulumu (Tab + Stack navigation)
+- [ ] Temel klasör yapısı
+
+#### Faz 2: Utility & Config Taşıma
+- [ ] `moonPhase.js` → olduğu gibi kopyala
+- [ ] `fishSuggestions.js` → olduğu gibi kopyala
+- [ ] `theme.js` → olduğu gibi kopyala
+- [ ] `fish-suggestions.json` → olduğu gibi kopyala
+- [ ] `locales/*.json` → olduğu gibi kopyala
+
+#### Faz 3: Context Adaptasyonu
+- [ ] AuthContext → AsyncStorage + Supabase RN
+- [ ] LanguageContext → AsyncStorage
+
+#### Faz 4: UI Bileşenleri (Yeniden Yazım)
+- [ ] TabNav → React Navigation Bottom Tabs
+- [ ] TopBar → Custom header
+- [ ] HomeTab → React Native StyleSheet
+- [ ] CatchesTab → expo-image-picker + Form
+- [ ] WeatherTab → react-native-maps
+- [ ] LunarTab → StyleSheet
+- [ ] StatsTab → react-native-chart-kit
+
+#### Faz 5: Native Özellikler
+- [ ] Kamera/Galeri (expo-image-picker)
+- [ ] Konum izni (expo-location)
+- [ ] Push Notifications (expo-notifications)
+
+#### Faz 6: Test & Yayın
+- [ ] iOS Simulator / Android Emulator test
+- [ ] Gerçek cihaz testi
+- [ ] App Store / Play Store hazırlık
+- [ ] İlk yayın
+
+---
+
+### Web İçin Kalan İşler (Düşük Öncelik)
+
 - [ ] Av silme/düzenleme özelliği
-- [x] Çoklu Dil Desteği (i18n) ✅
-  - [x] Türkçe (TR) - Tamamlandı
-  - [x] İngilizce (EN) - Tamamlandı
-  - [ ] Norveççe (NO) - Gelecek (İskandinav pazarı)
-  - [ ] Rusça (RU) - Gelecek (Doğu Avrupa pazarı)
 - [ ] Google OAuth entegrasyonu
-
-#### Öncelik 2 - Orta Vadeli
-- [x] Fotoğraf ekleme (Supabase Storage) ✅
-- [ ] PWA desteği (offline çalışma)
-- [ ] Push bildirimleri (ideal av zamanları)
-
-#### Öncelik 3 - Uzun Vadeli (Ticari)
-- [ ] Sosyal özellikler (paylaşım, liderlik tablosu)
-- [ ] Premium özellikler
-- [ ] Uluslararası pazara açılım (NO, RU dilleri)
+- [ ] Ek diller (NO, RU) - Mobil sonrası
 
 ---
 
@@ -392,13 +452,19 @@ CREATE POLICY "Users can CRUD own favorites" ON fav_places
 
 ---
 
-## 📚 Gelecek Adımlar
+## 📚 Proje Yol Haritası
 
-### Yakın Hedefler
-1. ~~Çoklu Dil Desteği (TR + EN)~~ ✅ Tamamlandı
-2. Av silme/düzenleme özelliği
-3. Google OAuth entegrasyonu (devam ediyor)
-4. Ek diller (NO, RU)
+### Şu An: Mobil Uygulama Geliştirme 📱
+- React Native (Expo) ile iOS + Android uygulaması
+- Aynı Supabase backend kullanılacak
+- Web uygulaması korunuyor (düşük öncelik)
+
+### Sonraki Adımlar (Mobil Sonrası)
+1. App Store / Play Store yayını
+2. Push bildirimleri (ideal av zamanları)
+3. Sosyal özellikler (paylaşım, liderlik tablosu)
+4. Premium özellikler (ticari model)
+5. Ek diller (NO, RU - uluslararası pazar)
 
 ### Hedef Pazarlar
 - **Türkiye:** Ana pazar, Türkçe
@@ -406,17 +472,19 @@ CREATE POLICY "Users can CRUD own favorites" ON fav_places
 - **İskandinav:** Norveç, İsveç, Danimarka (balıkçılık kültürü güçlü)
 - **Doğu Avrupa:** Rusya, Ukrayna (büyük balıkçı nüfusu)
 
-> **Not:** Detaylı versiyon geçmişi, deployment süreçleri ve teknik kararlar için `UZ-FISHLOG-ARSIV.md` dosyasına bakınız.
+> **Not:** Detaylı analiz, platform karşılaştırmaları ve teknik kararlar için `UZ-FISHLOG-ARSIV.md` dosyasına bakınız.
 
 ---
 
 ## 👥 Proje Bilgileri
 
 **Geliştirici:** UZ FishLog Team (Uzbad)
-**Versiyon:** 1.7.0
-**Son Güncelleme:** 9 Ocak 2026
+**Web Versiyon:** 1.7.0 (Stabil)
+**Mobil Versiyon:** Geliştirme aşamasında
+**Son Güncelleme:** 12 Ocak 2026
 
-**GitHub:** https://github.com/uzbadgimli/Uz-FishLog
+**Web Repo:** uz-fishlog/
+**Mobil Repo:** uz-fishlog-mobile/ (oluşturulacak)
 **Domain:** http://falancayer.com
 
 ---
