@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useMemo } from 'react'
 import styles from '@/app/FishLog.module.css'
 import { useLanguage } from '@/app/context/LanguageContext'
 
@@ -11,6 +12,54 @@ export default function StatsTab({
   setShowAuthModal
 }) {
   const { t, language } = useLanguage()
+
+  // Filtreleme state'leri
+  const [filterSpecies, setFilterSpecies] = useState('')
+  const [filterDateStart, setFilterDateStart] = useState('')
+  const [filterDateEnd, setFilterDateEnd] = useState('')
+  const [showFilters, setShowFilters] = useState(false)
+
+  // Benzersiz balık türleri
+  const uniqueSpecies = useMemo(() => {
+    return [...new Set(catches.map(c => c.species))].sort()
+  }, [catches])
+
+  // Filtrelenmiş avlar
+  const filteredCatches = useMemo(() => {
+    return catches.filter(c => {
+      // Tür filtresi
+      if (filterSpecies && c.species !== filterSpecies) return false
+
+      // Tarih filtresi
+      if (filterDateStart || filterDateEnd) {
+        const catchDate = c.hunt_date ? new Date(c.hunt_date) : new Date(c.created_at)
+
+        if (filterDateStart) {
+          const startDate = new Date(filterDateStart)
+          startDate.setHours(0, 0, 0, 0)
+          if (catchDate < startDate) return false
+        }
+
+        if (filterDateEnd) {
+          const endDate = new Date(filterDateEnd)
+          endDate.setHours(23, 59, 59, 999)
+          if (catchDate > endDate) return false
+        }
+      }
+
+      return true
+    })
+  }, [catches, filterSpecies, filterDateStart, filterDateEnd])
+
+  // Filtre aktif mi?
+  const isFilterActive = filterSpecies || filterDateStart || filterDateEnd
+
+  // Filtreleri temizle
+  const clearFilters = () => {
+    setFilterSpecies('')
+    setFilterDateStart('')
+    setFilterDateEnd('')
+  }
 
   return (
     <div>
@@ -57,6 +106,157 @@ export default function StatsTab({
         </div>
       ) : (
         <>
+          {/* Filtreleme Bölümü */}
+          <div style={{
+            background: theme.cardBg,
+            borderRadius: '1rem',
+            padding: '1rem',
+            border: `1px solid ${theme.cardBorder}`,
+            marginBottom: '1rem'
+          }}>
+            <div
+              onClick={() => setShowFilters(!showFilters)}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                cursor: 'pointer'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '1.25rem' }}>🔍</span>
+                <span style={{ fontWeight: '600', color: theme.text }}>{t('stats.filters')}</span>
+                {isFilterActive && (
+                  <span style={{
+                    background: '#3B82F6',
+                    color: 'white',
+                    fontSize: '0.75rem',
+                    padding: '0.125rem 0.5rem',
+                    borderRadius: '1rem',
+                    fontWeight: '600'
+                  }}>
+                    {t('stats.active')}
+                  </span>
+                )}
+              </div>
+              <span style={{ color: theme.textSecondary, fontSize: '1.25rem' }}>
+                {showFilters ? '▲' : '▼'}
+              </span>
+            </div>
+
+            {showFilters && (
+              <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {/* Balık Türü Filtresi */}
+                <div>
+                  <label style={{ fontSize: '0.875rem', color: theme.textSecondary, marginBottom: '0.25rem', display: 'block' }}>
+                    {t('catches.species')}
+                  </label>
+                  <select
+                    value={filterSpecies}
+                    onChange={(e) => setFilterSpecies(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      background: theme.inputBg,
+                      border: `1px solid ${theme.inputBorder}`,
+                      borderRadius: '0.5rem',
+                      color: theme.text,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value="">{t('stats.allSpecies')}</option>
+                    {uniqueSpecies.map(species => (
+                      <option key={species} value={species}>{species}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Tarih Aralığı Filtresi */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div>
+                    <label style={{ fontSize: '0.875rem', color: theme.textSecondary, marginBottom: '0.25rem', display: 'block' }}>
+                      {t('stats.dateFrom')}
+                    </label>
+                    <input
+                      type="date"
+                      value={filterDateStart}
+                      onChange={(e) => setFilterDateStart(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        background: theme.inputBg,
+                        border: `1px solid ${theme.inputBorder}`,
+                        borderRadius: '0.5rem',
+                        color: theme.text
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.875rem', color: theme.textSecondary, marginBottom: '0.25rem', display: 'block' }}>
+                      {t('stats.dateTo')}
+                    </label>
+                    <input
+                      type="date"
+                      value={filterDateEnd}
+                      onChange={(e) => setFilterDateEnd(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        background: theme.inputBg,
+                        border: `1px solid ${theme.inputBorder}`,
+                        borderRadius: '0.5rem',
+                        color: theme.text
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Filtre Temizle Butonu */}
+                {isFilterActive && (
+                  <button
+                    onClick={clearFilters}
+                    style={{
+                      padding: '0.75rem',
+                      background: isDarkMode ? '#475569' : '#94A3B8',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      cursor: 'pointer',
+                      fontWeight: '600'
+                    }}
+                  >
+                    {t('stats.clearFilters')}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Filtre Sonuç Bilgisi */}
+          {isFilterActive && (
+            <div style={{
+              background: isDarkMode ? '#1E3A5F' : '#DBEAFE',
+              borderRadius: '0.75rem',
+              padding: '0.75rem 1rem',
+              marginBottom: '1rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span style={{ color: isDarkMode ? '#93C5FD' : '#1E40AF', fontSize: '0.875rem' }}>
+                {t('stats.showingResults').replace('{{count}}', filteredCatches.length).replace('{{total}}', catches.length)}
+              </span>
+            </div>
+          )}
+
+          {filteredCatches.length === 0 ? (
+            <div className={styles.emptyState}>
+              <div className="icon">🔍</div>
+              <h3>{t('stats.noResultsFound')}</h3>
+              <p>{t('stats.tryDifferentFilters')}</p>
+            </div>
+          ) : (
+          <>
           {/* Genel Istatistikler */}
           <div style={{
             background: 'linear-gradient(135deg, #1E40AF 0%, #7C3AED 100%)',
@@ -68,18 +268,18 @@ export default function StatsTab({
             <h3 style={{ fontSize: '1.125rem', marginBottom: '1rem' }}>{t('stats.overview')}</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{catches.length}</div>
+                <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{filteredCatches.length}</div>
                 <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>{t('stats.totalCatches')}</div>
               </div>
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
-                  {[...new Set(catches.map(c => c.species))].length}
+                  {[...new Set(filteredCatches.map(c => c.species))].length}
                 </div>
                 <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>{t('stats.differentSpecies')}</div>
               </div>
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
-                  {[...new Set(catches.map(c => c.location))].length}
+                  {[...new Set(filteredCatches.map(c => c.location))].length}
                 </div>
                 <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>{t('stats.differentLocations')}</div>
               </div>
@@ -106,10 +306,10 @@ export default function StatsTab({
               }}>
                 <div style={{ fontSize: '0.75rem', color: isDarkMode ? '#86EFAC' : '#166534', marginBottom: '0.25rem' }}>{t('stats.biggestCatch')}</div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#86EFAC' : '#166534' }}>
-                  {Math.max(...catches.map(c => c.length_cm))} cm
+                  {Math.max(...filteredCatches.map(c => c.length_cm))} cm
                 </div>
                 <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>
-                  {catches.find(c => c.length_cm === Math.max(...catches.map(c => c.length_cm)))?.species}
+                  {filteredCatches.find(c => c.length_cm === Math.max(...filteredCatches.map(c => c.length_cm)))?.species}
                 </div>
               </div>
               <div style={{
@@ -120,11 +320,11 @@ export default function StatsTab({
               }}>
                 <div style={{ fontSize: '0.75rem', color: isDarkMode ? '#FCD34D' : '#92400E', marginBottom: '0.25rem' }}>{t('stats.averageSize')}</div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#FCD34D' : '#92400E' }}>
-                  {Math.round(catches.reduce((sum, c) => sum + c.length_cm, 0) / catches.length)} cm
+                  {Math.round(filteredCatches.reduce((sum, c) => sum + c.length_cm, 0) / filteredCatches.length)} cm
                 </div>
                 <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>
-                  {catches.filter(c => c.weight_gr).length > 0 &&
-                    `${Math.round(catches.filter(c => c.weight_gr).reduce((sum, c) => sum + c.weight_gr, 0) / catches.filter(c => c.weight_gr).length)} gr ${language === 'en' ? 'avg' : 'ort'}.`
+                  {filteredCatches.filter(c => c.weight_gr).length > 0 &&
+                    `${Math.round(filteredCatches.filter(c => c.weight_gr).reduce((sum, c) => sum + c.weight_gr, 0) / filteredCatches.filter(c => c.weight_gr).length)} gr ${language === 'en' ? 'avg' : 'ort'}.`
                   }
                 </div>
               </div>
@@ -143,7 +343,7 @@ export default function StatsTab({
               {t('stats.speciesDistribution')}
             </h3>
             {(() => {
-              const speciesCount = catches.reduce((acc, c) => {
+              const speciesCount = filteredCatches.reduce((acc, c) => {
                 acc[c.species] = (acc[c.species] || 0) + 1
                 return acc
               }, {})
@@ -191,7 +391,7 @@ export default function StatsTab({
               {t('stats.topLocations')}
             </h3>
             {(() => {
-              const locationCount = catches.reduce((acc, c) => {
+              const locationCount = filteredCatches.reduce((acc, c) => {
                 acc[c.location] = (acc[c.location] || 0) + 1
                 return acc
               }, {})
@@ -232,7 +432,7 @@ export default function StatsTab({
               {t('stats.timeDistribution')}
             </h3>
             {(() => {
-              const hourCount = catches.reduce((acc, c) => {
+              const hourCount = filteredCatches.reduce((acc, c) => {
                 if (c.hunt_date) {
                   const hour = new Date(c.hunt_date).getHours()
                   const period = hour < 6 ? 'night' :
@@ -275,6 +475,8 @@ export default function StatsTab({
               )
             })()}
           </div>
+          </>
+          )}
         </>
       )}
     </div>

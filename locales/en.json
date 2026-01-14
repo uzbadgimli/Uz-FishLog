@@ -88,7 +88,15 @@
     "removePhoto": "Remove",
     "uploadingPhoto": "Uploading...",
     "photoError": "Failed to upload photo",
-    "maxFileSize": "Maximum file size: 5MB"
+    "maxFileSize": "Maximum file size: 5MB",
+    "deleteConfirm": "Are you sure you want to delete this catch?",
+    "deleteSuccess": "Catch deleted successfully",
+    "updateSuccess": "Catch updated successfully",
+    "editing": "Editing",
+    "selectSpecies": "Select fish species",
+    "popularFish": "Popular Fish",
+    "allFish": "All Fish",
+    "backToList": "Back to List"
   },
   "lunar": {
     "title": "Fish Activity Calendar",
@@ -125,7 +133,16 @@
     "night": "Night",
     "topLocations": "Top Locations",
     "noCatchesYet": "No catches recorded yet",
-    "addCatchesToSeeStats": "Add catches to see statistics"
+    "addCatchesToSeeStats": "Add catches to see statistics",
+    "filters": "Filters",
+    "active": "Active",
+    "allSpecies": "All species",
+    "dateFrom": "From date",
+    "dateTo": "To date",
+    "clearFilters": "Clear Filters",
+    "showingResults": "Showing {{count}} / {{total}} catches",
+    "noResultsFound": "No results found",
+    "tryDifferentFilters": "Try different filter combination"
   },
   "auth": {
     "login": "Login",

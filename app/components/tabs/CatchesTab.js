@@ -1,7 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import styles from '@/app/FishLog.module.css'
 import { useLanguage } from '@/app/context/LanguageContext'
+import { getFishList } from '@/app/data/fishSpecies'
 
 export default function CatchesTab({
   theme,
@@ -31,9 +33,26 @@ export default function CatchesTab({
   uploadingPhoto,
   // Handlers
   addCatch,
-  setShowAuthModal
+  setShowAuthModal,
+  // Edit/Delete handlers
+  editingCatch,
+  setEditingCatch,
+  updateCatch,
+  deleteCatch
 }) {
   const { t, language } = useLanguage()
+  const [showOtherInput, setShowOtherInput] = useState(false)
+  const fishList = getFishList(language)
+
+  const handleSpeciesChange = (value) => {
+    if (value === '__other__') {
+      setShowOtherInput(true)
+      setSpecies('')
+    } else {
+      setShowOtherInput(false)
+      setSpecies(value)
+    }
+  }
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0]
@@ -99,19 +118,70 @@ export default function CatchesTab({
         <>
           {/* Yeni Av Formu */}
           <div className={styles.formCard} style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
-            <h3 style={{ color: theme.text }}>+ {t('catches.addNew')}</h3>
-            <form onSubmit={addCatch}>
+            <h3 style={{ color: theme.text }}>
+              {editingCatch ? `✏️ ${t('catches.editing')}` : `+ ${t('catches.addNew')}`}
+            </h3>
+            <form onSubmit={editingCatch ? updateCatch : addCatch}>
               <div className={styles.formGroup}>
                 <label className={styles.formLabel} style={{ color: isDarkMode ? '#60A5FA' : '#1E40AF' }}>{t('catches.species')} *</label>
-                <input
-                  type="text"
-                  placeholder={t('catches.speciesPlaceholder')}
-                  value={species}
-                  onChange={(e) => setSpecies(e.target.value)}
-                  className={styles.formInput}
-                  style={{ background: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }}
-                  required
-                />
+                {!showOtherInput ? (
+                  <select
+                    value={species}
+                    onChange={(e) => handleSpeciesChange(e.target.value)}
+                    className={styles.formInput}
+                    style={{
+                      background: theme.inputBg,
+                      borderColor: theme.inputBorder,
+                      color: theme.text,
+                      cursor: 'pointer'
+                    }}
+                    required
+                  >
+                    <option value="">{t('catches.selectSpecies')}</option>
+                    <optgroup label={t('catches.popularFish')}>
+                      {fishList.popular.map(fish => (
+                        <option key={fish} value={fish}>{fish}</option>
+                      ))}
+                    </optgroup>
+                    <optgroup label={t('catches.allFish')}>
+                      {fishList.alphabetical.map(fish => (
+                        <option key={fish} value={fish}>{fish}</option>
+                      ))}
+                    </optgroup>
+                    <option value="__other__">{fishList.otherLabel}</option>
+                  </select>
+                ) : (
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <input
+                      type="text"
+                      placeholder={t('catches.speciesPlaceholder')}
+                      value={species}
+                      onChange={(e) => setSpecies(e.target.value)}
+                      className={styles.formInput}
+                      style={{ background: theme.inputBg, borderColor: theme.inputBorder, color: theme.text, flex: 1 }}
+                      required
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowOtherInput(false)
+                        setSpecies('')
+                      }}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: isDarkMode ? '#475569' : '#94A3B8',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        fontSize: '0.875rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {t('catches.backToList')}
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className={styles.formRow}>
@@ -274,9 +344,40 @@ export default function CatchesTab({
                 )}
               </div>
 
-              <button type="submit" className={styles.submitButton} disabled={uploadingPhoto}>
-                {uploadingPhoto ? t('catches.uploadingPhoto') : t('catches.submit')}
-              </button>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button type="submit" className={styles.submitButton} disabled={uploadingPhoto} style={{ flex: 1 }}>
+                  {uploadingPhoto ? t('catches.uploadingPhoto') : (editingCatch ? t('common.save') : t('catches.submit'))}
+                </button>
+                {editingCatch && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingCatch(null)
+                      setSpecies('')
+                      setLengthCm('')
+                      setWeightGr('')
+                      setLocation('')
+                      setNotes('')
+                      setHuntDate(new Date().toISOString().split('T')[0])
+                      setHuntTime(new Date().toTimeString().slice(0, 5))
+                      setPhotoFile(null)
+                      setPhotoPreview(null)
+                    }}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      background: isDarkMode ? '#475569' : '#94A3B8',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {t('common.cancel')}
+                  </button>
+                )}
+              </div>
             </form>
           </div>
 
@@ -387,6 +488,68 @@ export default function CatchesTab({
                         {c.notes}
                       </div>
                     )}
+
+                    {/* Düzenle / Sil Butonları */}
+                    <div style={{
+                      marginTop: '0.75rem',
+                      paddingTop: '0.75rem',
+                      borderTop: `1px solid ${theme.cardBorder}`,
+                      display: 'flex',
+                      gap: '0.5rem',
+                      justifyContent: 'flex-end'
+                    }}>
+                      <button
+                        onClick={() => {
+                          setEditingCatch(c)
+                          setSpecies(c.species)
+                          setLengthCm(c.length_cm?.toString() || '')
+                          setWeightGr(c.weight_gr?.toString() || '')
+                          setLocation(c.location)
+                          setNotes(c.notes || '')
+                          if (c.hunt_date) {
+                            const date = new Date(c.hunt_date)
+                            setHuntDate(date.toISOString().split('T')[0])
+                            setHuntTime(date.toTimeString().slice(0, 5))
+                          }
+                          setPhotoPreview(c.photo_url || null)
+                          setPhotoFile(null)
+                          window.scrollTo({ top: 0, behavior: 'smooth' })
+                        }}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          background: isDarkMode ? '#3B82F6' : '#1E40AF',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '0.375rem',
+                          fontSize: '0.875rem',
+                          fontWeight: '500',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.25rem'
+                        }}
+                      >
+                        ✏️ {t('common.edit')}
+                      </button>
+                      <button
+                        onClick={() => deleteCatch(c.id)}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          background: isDarkMode ? '#DC2626' : '#EF4444',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '0.375rem',
+                          fontSize: '0.875rem',
+                          fontWeight: '500',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.25rem'
+                        }}
+                      >
+                        🗑️ {t('common.delete')}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

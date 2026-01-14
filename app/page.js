@@ -38,7 +38,7 @@ const MapComponent = dynamic(() => import('./components/MapComponent'), {
 export default function Home() {
   // Auth
   const { user, loading: authLoading, signOut } = useAuth()
-  const { language } = useLanguage()
+  const { language, t } = useLanguage()
   const [showAuthModal, setShowAuthModal] = useState(false)
 
   const [activeTab, setActiveTab] = useState('home')
@@ -74,6 +74,7 @@ export default function Home() {
   const [photoFile, setPhotoFile] = useState(null)
   const [photoPreview, setPhotoPreview] = useState(null)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [editingCatch, setEditingCatch] = useState(null)
 
   // Varsayilan lokasyon state (kullanici icin)
   const [defaultUserLocation, setDefaultUserLocation] = useState(null)
@@ -323,7 +324,7 @@ export default function Home() {
     e.preventDefault()
 
     if (!user) {
-      alert('Av eklemek için giriş yapmalısınız')
+      alert(t('catches.loginRequired'))
       return
     }
 
@@ -355,7 +356,7 @@ export default function Home() {
 
     if (error) {
       console.error('Insert error:', error)
-      alert('Hata: ' + error.message)
+      alert(t('common.error') + ': ' + error.message)
     } else {
       setSpecies('')
       setLengthCm('')
@@ -368,6 +369,70 @@ export default function Home() {
       setPhotoPreview(null)
       fetchCatches()
       setActiveTab('home')
+    }
+  }
+
+  async function updateCatch(e) {
+    e.preventDefault()
+
+    if (!user || !editingCatch) return
+
+    setUploadingPhoto(true)
+    let photoUrl = editingCatch.photo_url
+
+    // Yeni fotoğraf yüklendiyse
+    if (photoFile) {
+      photoUrl = await uploadPhoto(photoFile)
+    }
+
+    const huntDateTime = `${huntDate}T${huntTime}:00`
+
+    const { error } = await supabase
+      .from('catches')
+      .update({
+        species: species,
+        length_cm: parseInt(lengthCm),
+        weight_gr: weightGr ? parseInt(weightGr) : null,
+        location: location,
+        notes: notes || null,
+        hunt_date: huntDateTime,
+        photo_url: photoUrl
+      })
+      .eq('id', editingCatch.id)
+
+    setUploadingPhoto(false)
+
+    if (error) {
+      console.error('Update error:', error)
+      alert(t('common.error') + ': ' + error.message)
+    } else {
+      setEditingCatch(null)
+      setSpecies('')
+      setLengthCm('')
+      setWeightGr('')
+      setLocation('')
+      setNotes('')
+      setHuntDate(new Date().toISOString().split('T')[0])
+      setHuntTime(new Date().toTimeString().slice(0, 5))
+      setPhotoFile(null)
+      setPhotoPreview(null)
+      fetchCatches()
+    }
+  }
+
+  async function deleteCatch(id) {
+    if (!confirm(t('catches.deleteConfirm'))) return
+
+    const { error } = await supabase
+      .from('catches')
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      console.error('Delete error:', error)
+      alert(t('common.error') + ': ' + error.message)
+    } else {
+      fetchCatches()
     }
   }
 
@@ -461,6 +526,10 @@ export default function Home() {
             photoPreview={photoPreview}
             setPhotoPreview={setPhotoPreview}
             uploadingPhoto={uploadingPhoto}
+            editingCatch={editingCatch}
+            setEditingCatch={setEditingCatch}
+            updateCatch={updateCatch}
+            deleteCatch={deleteCatch}
           />
         )}
 

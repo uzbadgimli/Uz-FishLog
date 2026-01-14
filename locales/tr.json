@@ -88,7 +88,15 @@
     "removePhoto": "Kaldır",
     "uploadingPhoto": "Yükleniyor...",
     "photoError": "Fotoğraf yüklenemedi",
-    "maxFileSize": "Maksimum dosya boyutu: 5MB"
+    "maxFileSize": "Maksimum dosya boyutu: 5MB",
+    "deleteConfirm": "Bu avı silmek istediğinize emin misiniz?",
+    "deleteSuccess": "Av başarıyla silindi",
+    "updateSuccess": "Av başarıyla güncellendi",
+    "editing": "Düzenleniyor",
+    "selectSpecies": "Balık türü seçin",
+    "popularFish": "Popüler Balıklar",
+    "allFish": "Tüm Balıklar",
+    "backToList": "Listeye Dön"
   },
   "lunar": {
     "title": "Balık Aktivite Takvimi",
@@ -125,7 +133,16 @@
     "night": "Gece",
     "topLocations": "En Başarılı Yerler",
     "noCatchesYet": "Henüz av kaydınız yok",
-    "addCatchesToSeeStats": "İstatistikleri görmek için av ekleyin"
+    "addCatchesToSeeStats": "İstatistikleri görmek için av ekleyin",
+    "filters": "Filtreler",
+    "active": "Aktif",
+    "allSpecies": "Tüm türler",
+    "dateFrom": "Başlangıç tarihi",
+    "dateTo": "Bitiş tarihi",
+    "clearFilters": "Filtreleri Temizle",
+    "showingResults": "{{count}} / {{total}} av gösteriliyor",
+    "noResultsFound": "Sonuç bulunamadı",
+    "tryDifferentFilters": "Farklı filtre kombinasyonu deneyin"
   },
   "auth": {
     "login": "Giriş Yap",
