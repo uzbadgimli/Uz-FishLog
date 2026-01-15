@@ -1,10 +1,10 @@
-# UZ-FISHLOG - Proje Dokümantasyonu v2.0
+# UZ-FISHLOG - Proje Dokümantasyonu v2.1
 
 ## 📋 Proje Özeti
 
 **UZ-FishLog**, balıkçıların av kayıtlarını tutması, hava durumunu takip etmesi ve balık aktivitelerini analiz etmesi için geliştirilmiş profesyonel bir uygulama platformudur.
 
-**v2.0 ile artık hem Web hem de Mobil (iOS + Android) desteği mevcuttur.**
+**v2.1 ile Web ve Mobil arasında tam özellik paritesi sağlandı.**
 
 ---
 
@@ -15,9 +15,9 @@
 - **Teknoloji:** Next.js 16.1.1
 - **Durum:** Tamamlandı, bakım modunda
 
-### Mobil Uygulama (v2.0) ✅ Geliştiriliyor
+### Mobil Uygulama (v2.1) ✅ Geliştiriliyor
 - **Konum:** `uz-fishlog-mobile/`
-- **Teknoloji:** React Native (Expo SDK 52)
+- **Teknoloji:** React Native (Expo SDK 54)
 - **Hedef:** iOS App Store + Android Play Store
 
 ---
@@ -50,13 +50,17 @@
 
 **Avlarım (catches.tsx)**
 - Av kayıt formu (tür, boy, ağırlık, yer, tarih, not)
+- **Balık türü dropdown** (popüler + alfabetik + diğer seçeneği)
+- "Diğer" seçeneği ile manuel tür girişi
 - Av listesi
 - Fotoğraf gösterimi (photo_url desteği)
 - Login kontrolü
 
 **Hava Durumu (weather.tsx)**
 - Favori lokasyonlar (Supabase'den çekiliyor)
-- Yeni lokasyon ekleme modal'ı (isim, lat, lon)
+- **Haritadan konum seçme** (react-native-maps)
+- **GPS ile mevcut konum alma** (expo-location)
+- Yeni lokasyon ekleme modal'ı
 - Lokasyon silme (uzun basma)
 - Hava detayları (sıcaklık, rüzgar, nem, basınç, dalga)
 - Balık & yem önerileri
@@ -75,6 +79,8 @@
 - En çok tutulan türler
 - En başarılı yerler
 - Zaman dağılımı (sabah/öğlen/akşam/gece)
+- **Filtreleme** (balık türü + tarih aralığı)
+- Filtre sonuç bilgisi gösterimi
 
 #### 4. **Auth Modal**
 - Email/Password giriş
@@ -100,6 +106,8 @@ uz-fishlog-mobile/
 │   ├── AuthContext.tsx     # Kimlik doğrulama
 │   ├── LanguageContext.tsx # Çoklu dil (i18n)
 │   └── ThemeContext.tsx    # Dark/Light tema
+├── data/
+│   └── fishSpecies.ts      # Balık türleri listesi (TR/EN)
 ├── lib/
 │   └── supabase.js         # Supabase RN client
 ├── utils/
@@ -144,8 +152,11 @@ uz-fishlog-mobile/
 ### Sadece Mobil
 - [x] Native tab navigation
 - [x] AsyncStorage ile kalıcı tercihler
-- [x] Koordinat ile lokasyon ekleme
+- [x] **React Native Maps entegrasyonu** (haritadan konum seçme)
+- [x] **GPS ile mevcut konum alma** (expo-location)
 - [x] Tema toggle butonu (ana sayfada)
+- [x] **Balık türü dropdown** (modal picker)
+- [x] **Analiz filtreleme** (DateTimePicker ile tarih seçimi)
 
 ---
 
@@ -154,7 +165,7 @@ uz-fishlog-mobile/
 ### Mobil - Kısa Vadeli
 - [ ] Fotoğraf yükleme (expo-image-picker)
 - [ ] Av silme/düzenleme
-- [ ] React Native Maps entegrasyonu
+- [x] ~~React Native Maps entegrasyonu~~ ✅ Tamamlandı
 - [ ] Pull-to-refresh
 - [ ] Loading skeletons
 
@@ -192,11 +203,14 @@ uz-fishlog-mobile/
 - **Deployment:** Plesk static export
 
 ### Mobil Stack
-- **Framework:** React Native (Expo SDK 52)
+- **Framework:** React Native (Expo SDK 54)
 - **Navigation:** Expo Router
 - **State:** React Context + AsyncStorage
 - **Styling:** React Native StyleSheet
 - **Language:** TypeScript
+- **Maps:** react-native-maps
+- **Location:** expo-location
+- **Date Picker:** @react-native-community/datetimepicker
 
 ---
 
@@ -233,7 +247,27 @@ created_at TIMESTAMP
 
 ## 🔄 Versiyon Geçmişi
 
-### v2.0.2 (14 Ocak 2026) - Güncel
+### v2.1.0 (15 Ocak 2026) - Güncel
+- **Mobil - Harita Entegrasyonu**
+  - react-native-maps ile haritadan konum seçme
+  - expo-location ile GPS konumu alma
+  - "Konumumu Kullan" butonu
+  - Haritaya tıklayarak favori ekleme
+  - Web ve mobil arasında favoriler senkronize (aynı Supabase)
+
+- **Mobil - Balık Türü Dropdown**
+  - Popüler balıklar (Levrek, Lüfer, Çipura, Mırmır, İstavrit) üstte
+  - 30+ balık türü TR/EN destekli
+  - "Diğer" seçeneği ile manuel giriş
+  - Modal picker ile seçim
+
+- **Mobil - Analiz Filtreleme**
+  - Balık türü filtresi (kullanıcının avladığı türlerden)
+  - Tarih aralığı filtresi (DateTimePicker)
+  - Filtre sonuç bilgisi gösterimi
+  - Filtreleri temizle butonu
+
+### v2.0.2 (14 Ocak 2026)
 - **Web İyileştirmeleri**
   - Analiz tabına filtreleme eklendi (tarih aralığı, balık türü)
   - Av kayıt formuna balık türü dropdown eklendi
@@ -288,10 +322,10 @@ created_at TIMESTAMP
 ## 👥 Proje Bilgileri
 
 **Geliştirici:** UZ FishLog Team (Uzbad)
-**Proje Versiyonu:** 2.0.0
+**Proje Versiyonu:** 2.1.0
 **Web Versiyonu:** 1.7.0 (Stabil)
-**Mobil Versiyonu:** 2.0.0 (Geliştirme)
-**Son Güncelleme:** 14 Ocak 2026
+**Mobil Versiyonu:** 2.1.0 (Geliştirme)
+**Son Güncelleme:** 15 Ocak 2026
 
 ---
 
