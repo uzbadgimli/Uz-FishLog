@@ -162,10 +162,25 @@ uz-fishlog-mobile/
 
 ## 🚧 Sonraki Adımlar
 
+### Mobil - Hava Durumu Tab İyileştirmeleri (Öncelikli)
+- [ ] Favori lokasyon düzenleme (isim değiştirme)
+- [ ] Kullanıcı kendi default lokasyonunu seçebilmeli
+- [ ] Hava durumu kartları küçültülecek
+- [ ] 7 günlük hava tahmini eklenmeli
+- [ ] Bugüne tıklayınca saatlik hava durumu gösterilmeli
+- [ ] Deniz kontrolü (sadece deniz konumu seçilebilir) ✅ Tamamlandı
+
+### Genel UI İyileştirmeleri (Gelecek)
+- [ ] Font değişikliği (Web + Mobil)
+  - Önerilen: Inter, Poppins, Nunito, Space Grotesk
+  - Mobil: expo-font ile Google Fonts
+  - Web: next/font ile Google Fonts
+
 ### Mobil - Kısa Vadeli
 - [ ] Fotoğraf yükleme (expo-image-picker)
 - [ ] Av silme/düzenleme
 - [x] ~~React Native Maps entegrasyonu~~ ✅ Tamamlandı
+- [x] ~~Haritadan konum seçme - deniz kontrolü~~ ✅ Tamamlandı
 - [ ] Pull-to-refresh
 - [ ] Loading skeletons
 
@@ -185,6 +200,22 @@ uz-fishlog-mobile/
 
 ### Web - Düşük Öncelik
 - [ ] Responsive iyileştirmeler
+
+### Bölgesel Balık Verisi (Gelecek)
+- [ ] `fish_presence` tablosunu doldurma
+- [ ] Veri kaynakları:
+  - Balıkçı forumları ve yerel bilgiler
+  - AI destekli veri üretimi (GPT/Claude ile Türkiye balıkçılık verileri)
+  - Crowdsource: Kullanıcı avlarından otomatik öğrenme
+  - Tarım ve Orman Bakanlığı balıkçılık verileri
+- [ ] İl/ilçe bazlı balık önerileri entegrasyonu
+- [ ] Sezonluk balık takvimi
+
+### Genel UI İyileştirmeleri (Gelecek)
+- [ ] Font değişikliği (Web + Mobil)
+  - Önerilen: Inter, Poppins, Nunito, Space Grotesk
+  - Mobil: expo-font ile Google Fonts
+  - Web: next/font ile Google Fonts
 
 ---
 
@@ -243,6 +274,110 @@ created_at TIMESTAMP
 
 **RLS:** Her iki tabloda da `auth.uid() = user_id` politikası aktif.
 
+### Bölgesel Balık Tabloları (Aktif)
+
+#### Tablo İlişki Diyagramı
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  countries  │────<│  provinces  │────<│  districts  │────<│ water_bodies│
+│             │     │             │     │             │     │             │
+│ id          │     │ id          │     │ id          │     │ id          │
+│ name        │     │ country_id  │     │ province_id │     │ district_id │
+│ code        │     │ name        │     │ name        │     │ name        │
+└─────────────┘     │ region      │     │ lat, lon    │     │ type        │
+                    │ has_sea     │     │ has_sea     │     │ salinity    │
+                    └─────────────┘     └─────────────┘     └──────┬──────┘
+                                                                   │
+                    ┌─────────────┐     ┌─────────────┐            │
+                    │fish_species │     │fishing_     │            │
+                    │             │     │methods      │            │
+                    │ id          │     │             │            │
+                    │ name_tr     │     │ id          │            │
+                    │ name_lat    │     │ method      │            │
+                    │ water_pref  │     └──────┬──────┘            │
+                    │ migratory   │            │                   │
+                    │ sport_value │            │                   │
+                    │ food_value  │            │                   │
+                    │ notes       │            │                   │
+                    └──────┬──────┘            │                   │
+                           │                   │                   │
+                           └─────────┬─────────┴───────────────────┘
+                                     │
+                              ┌──────┴──────┐
+                              │fish_presence│ ⭐ Kritik Tablo
+                              │             │
+                              │ id          │
+                              │ water_body_id (FK)
+                              │ fish_id (FK)
+                              │ fishing_method_id (FK)
+                              │ presence_level
+                              │ catch_probability
+                              │ season_start/end
+                              │ confidence_score
+                              │ note, source
+                              │ last_verified
+                              └─────────────┘
+```
+
+#### countries (Ülkeler)
+```sql
+id, name, code
+-- Türkiye verisi mevcut
+```
+
+#### provinces (İller)
+```sql
+id, country_id (FK), name, name_en, code, region, has_sea
+-- 81 il verisi mevcut
+```
+
+#### districts (İlçeler)
+```sql
+id, province_id (FK), name, name_en, lat, lon, has_sea
+-- 973 ilçe verisi mevcut (tüm Türkiye)
+```
+
+#### water_bodies (Su Kütleleri)
+```sql
+id, district_id (FK), name, type, salinity, lat, lon
+-- type: sea, lake, river, dam, lagoon
+-- ~110 su kütlesi (Marmara, Ege, Akdeniz, Karadeniz, Göller)
+```
+
+#### fish_species (Balık Türleri - Master)
+```sql
+id, name_tr, name_lat, water_preference, migratory, sport_value, food_value, notes
+-- Levrek, Lüfer, Çinekop, İstavrit vb. mevcut
+```
+
+#### fish_presence (Bölge-Balık İlişkisi) ⭐ Kritik Tablo
+```sql
+id, water_body_id (FK), fish_id (FK), fishing_method_id (FK)
+presence_level  -- yaygın / nadir / göçmen
+catch_probability  -- 1-5 arası
+season_start, season_end  -- ay (1-12)
+confidence_score  -- veri güvenilirliği
+note, source, last_verified
+```
+
+#### fishing_methods (Avlanma Yöntemleri)
+```sql
+id, method
+-- kıyı, tekne, olta, zoka vb.
+```
+
+**Mevcut Veri Durumu:**
+- 81 il, 973 ilçe (tüm Türkiye)
+- ~110 su kütlesi (deniz kıyıları, göller, barajlar)
+- Balık türleri master listesi (20 tuzlu su balığı)
+- fish_presence tablosu henüz doldurulmadı (sonraki adım)
+
+**TODO - Tatlı Su Balıkları:**
+- [ ] fish_species tablosuna tatlı su balıkları eklenmeli (Sazan, Alabalık, Turna vb.)
+- [ ] fishSpecies.ts dosyasına tatlı su balıkları eklenmeli
+- [ ] locales/tr.json ve en.json çevirileri güncellenmeli
+- [ ] Av ekleme ekranında water_preference'a göre filtreleme yapılmalı
+
 ---
 
 ## 🔄 Versiyon Geçmişi
@@ -267,46 +402,23 @@ created_at TIMESTAMP
   - Filtre sonuç bilgisi gösterimi
   - Filtreleri temizle butonu
 
-### v2.0.2 (14 Ocak 2026)
-- **Web İyileştirmeleri**
-  - Analiz tabına filtreleme eklendi (tarih aralığı, balık türü)
-  - Av kayıt formuna balık türü dropdown eklendi
-  - Popüler balıklar (Levrek, Lüfer, Çipura, Mırmır, İstavrit) üstte
-  - 30+ balık türü TR/EN destekli
+*Eski sürümler (v1.x - v2.0.x) için bkz: `UZ-FISHLOG-ARSIV.md`*
 
-### v2.0.1 (14 Ocak 2026)
-- **Web İyileştirmeleri**
-  - Av silme/düzenleme özelliği eklendi
-  - İngilizce dil desteği hata düzeltmesi (t() fonksiyonu)
+---
 
-### v2.0.0 (14 Ocak 2026) 📱
-- **Mobil Uygulama Eklendi**
-  - React Native (Expo) ile iOS + Android desteği
-  - 5 tab ekranı (Ana, Avlar, Hava, Aktivite, Analiz)
-  - ThemeContext: Dark/Light tema toggle
-  - Favori lokasyon yönetimi (ekleme, silme)
-  - Ay fazına göre balık önerileri
-  - Av listesinde fotoğraf gösterimi
-  - AsyncStorage ile kalıcı tercihler
+## 🔐 Güvenlik Notları
 
-- **Web İyileştirmeleri**
-  - Alert mesajları i18n'e çevrildi
+**ÖNEMLI - .gitignore Kontrolü:**
+- Hassas dosyalar (API anahtarları, credentials) asla Git'e pushlamamalı
+- Her yeni dosya eklerken `.gitignore` kontrol edilmeli
+- SQL dosyaları şu an public (coğrafi veri, gizli bilgi yok)
+- `.env*` dosyaları zaten gitignore'da
 
-### v1.7.0 (9 Ocak 2026)
-- Fotoğraf yükleme özelliği
-- Supabase Storage entegrasyonu
-
-### v1.6.0 (7 Ocak 2026)
-- Çoklu dil desteği (TR/EN)
-
-### v1.5.0 (4 Ocak 2026)
-- Büyük refactoring
-- Kullanıcı kimlik doğrulama
-- Modüler komponent yapısı
-
-### v1.4.0 (27 Aralık 2025)
-- Leaflet harita entegrasyonu
-- Kullanıcı favorileri
+**Kontrol Listesi (Her Push Öncesi):**
+- [ ] `.env` dosyaları gitignore'da mı?
+- [ ] API anahtarları kod içinde hardcoded değil mi?
+- [ ] Credentials içeren dosya var mı?
+- [ ] Supabase URL/Key sadece environment'ta mı?
 
 ---
 
@@ -317,15 +429,20 @@ created_at TIMESTAMP
 - **Arşiv:** `UZ-FISHLOG-ARSIV.md` (eski kararlar, analiz notları)
 - **Domain:** http://falancayer.com
 
+### SQL Dosyaları
+- `sql/districts-all.sql` - Tüm Türkiye ilçeleri (973 ilçe, 81 il)
+- `sql/districts-marmara.sql` - Sadece Marmara bölgesi (11 il, 158 ilçe)
+- `sql/water-bodies-turkey.sql` - Türkiye su kütleleri (~110 lokasyon)
+
 ---
 
 ## 👥 Proje Bilgileri
 
 **Geliştirici:** UZ FishLog Team (Uzbad)
-**Proje Versiyonu:** 2.1.0
+**Proje Versiyonu:** 2.2.0
 **Web Versiyonu:** 1.7.0 (Stabil)
-**Mobil Versiyonu:** 2.1.0 (Geliştirme)
-**Son Güncelleme:** 15 Ocak 2026
+**Mobil Versiyonu:** 2.2.0 (Geliştirme)
+**Son Güncelleme:** 22 Ocak 2026
 
 ---
 

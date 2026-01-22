@@ -316,4 +316,51 @@ Storage:       AsyncStorage
 
 ---
 
-**📁 Arşiv Dosyası - Son Güncelleme: 12 Ocak 2026**
+---
+
+## 🔄 Eski Versiyon Geçmişi (Ana Dokümandan Taşındı)
+
+### v2.0.2 (14 Ocak 2026)
+- **Web İyileştirmeleri**
+  - Analiz tabına filtreleme eklendi (tarih aralığı, balık türü)
+  - Av kayıt formuna balık türü dropdown eklendi
+  - Popüler balıklar (Levrek, Lüfer, Çipura, Mırmır, İstavrit) üstte
+  - 30+ balık türü TR/EN destekli
+
+### v2.0.1 (14 Ocak 2026)
+- **Web İyileştirmeleri**
+  - Av silme/düzenleme özelliği eklendi
+  - İngilizce dil desteği hata düzeltmesi (t() fonksiyonu)
+
+### v2.0.0 (14 Ocak 2026)
+- **Mobil Uygulama Eklendi**
+  - React Native (Expo) ile iOS + Android desteği
+  - 5 tab ekranı (Ana, Avlar, Hava, Aktivite, Analiz)
+  - ThemeContext: Dark/Light tema toggle
+  - Favori lokasyon yönetimi (ekleme, silme)
+  - Ay fazına göre balık önerileri
+  - Av listesinde fotoğraf gösterimi
+  - AsyncStorage ile kalıcı tercihler
+
+- **Web İyileştirmeleri**
+  - Alert mesajları i18n'e çevrildi
+
+### v1.7.0 (9 Ocak 2026)
+- Fotoğraf yükleme özelliği
+- Supabase Storage entegrasyonu
+
+### v1.6.0 (7 Ocak 2026)
+- Çoklu dil desteği (TR/EN)
+
+### v1.5.0 (4 Ocak 2026)
+- Büyük refactoring
+- Kullanıcı kimlik doğrulama
+- Modüler komponent yapısı
+
+### v1.4.0 (27 Aralık 2025)
+- Leaflet harita entegrasyonu
+- Kullanıcı favorileri
+
+---
+
+**📁 Arşiv Dosyası - Son Güncelleme: 22 Ocak 2026**
