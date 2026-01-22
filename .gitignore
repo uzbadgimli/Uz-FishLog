@@ -34,6 +34,9 @@ QUICK_START.md
 *_SECRET*
 *_secret*
 
+# SQL data files (proprietary content)
+/sql/
+
 # vercel
 .vercel
 
