@@ -363,4 +363,149 @@ Storage:       AsyncStorage
 
 ---
 
-**📁 Arşiv Dosyası - Son Güncelleme: 22 Ocak 2026**
+---
+
+## ✅ Tamamlanan Özellikler (Detay)
+
+### Web + Mobil Ortak
+- [x] Av kayıt sistemi (CRUD)
+- [x] Kullanıcı kimlik doğrulama (Supabase Auth)
+- [x] Hava & deniz durumu (OpenMeteo API)
+- [x] Ay fazı ve solunar takvim
+- [x] İstatistikler
+- [x] Çoklu dil (TR/EN)
+- [x] Dark/Light tema
+- [x] Balık & yem önerileri (50+ senaryo)
+- [x] Ay fazına göre balık önerileri
+
+### Sadece Web
+- [x] Leaflet harita entegrasyonu
+- [x] Fotoğraf yükleme (Supabase Storage)
+- [x] 7 günlük hava tahmini
+- [x] Grafik görünümleri (bar chart)
+- [x] Google OAuth
+- [x] Av silme/düzenleme
+- [x] Analiz filtreleme (tarih aralığı, balık türü)
+- [x] Balık türü dropdown (popüler balıklar + alfabetik liste)
+
+### Sadece Mobil
+- [x] Native tab navigation
+- [x] AsyncStorage ile kalıcı tercihler
+- [x] React Native Maps entegrasyonu (haritadan konum seçme)
+- [x] GPS ile mevcut konum alma (expo-location)
+- [x] Tema toggle butonu (ana sayfada)
+- [x] Balık türü dropdown (modal picker)
+- [x] Analiz filtreleme (DateTimePicker ile tarih seçimi)
+
+---
+
+## 📱 Mobil Proje Yapısı (Referans)
+
+```
+uz-fishlog-mobile/
+├── app/
+│   ├── (tabs)/
+│   │   ├── _layout.tsx     # Tab navigator
+│   │   ├── index.tsx       # Ana sayfa
+│   │   ├── catches.tsx     # Avlarım
+│   │   ├── weather.tsx     # Hava durumu
+│   │   ├── lunar.tsx       # Aktivite
+│   │   └── stats.tsx       # Analiz
+│   ├── _layout.tsx         # Root layout (providers)
+│   └── modal.tsx           # Auth modal
+├── contexts/
+│   ├── AuthContext.tsx     # Kimlik doğrulama
+│   ├── LanguageContext.tsx # Çoklu dil (i18n)
+│   └── ThemeContext.tsx    # Dark/Light tema
+├── data/
+│   └── fishSpecies.ts      # Balık türleri listesi (TR/EN)
+├── lib/
+│   └── supabase.js         # Supabase RN client
+├── utils/
+│   ├── moonPhase.js        # Ay hesaplamaları
+│   ├── fishSuggestions.js  # Balık önerileri
+│   ├── helpers.js          # Yardımcı fonksiyonlar
+│   └── theme.js            # Tema renkleri
+├── config/
+│   └── fish-suggestions.json
+├── locales/
+│   ├── tr.json             # Türkçe
+│   └── en.json             # İngilizce
+└── constants/
+    └── Colors.ts           # Expo renk sabitleri
+```
+
+---
+
+## 📊 Veritabanı Şeması (Referans)
+
+### catches
+```sql
+id UUID PRIMARY KEY
+user_id UUID (FK auth.users)
+species TEXT NOT NULL
+length_cm INTEGER NOT NULL
+weight_gr INTEGER
+location TEXT NOT NULL
+notes TEXT
+hunt_date TIMESTAMP
+photo_url TEXT
+created_at TIMESTAMP
+```
+
+### favorite_locations (fav_places)
+```sql
+id UUID PRIMARY KEY
+user_id UUID (FK auth.users)
+name VARCHAR(100) NOT NULL
+lat DECIMAL(10, 6) NOT NULL
+lon DECIMAL(10, 6) NOT NULL
+is_default BOOLEAN
+created_at TIMESTAMP
+```
+
+### Bölgesel Tablolar İlişki Diyagramı
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  countries  │────<│  provinces  │────<│  districts  │────<│ water_bodies│
+│             │     │             │     │             │     │             │
+│ id          │     │ id          │     │ id          │     │ id          │
+│ name        │     │ country_id  │     │ province_id │     │ district_id │
+│ code        │     │ name        │     │ name        │     │ name        │
+└─────────────┘     │ region      │     │ lat, lon    │     │ type        │
+                    │ has_sea     │     │ has_sea     │     │ salinity    │
+                    └─────────────┘     └─────────────┘     └──────┬──────┘
+                                                                   │
+                    ┌─────────────┐     ┌─────────────┐            │
+                    │fish_species │     │fishing_     │            │
+                    │             │     │methods      │            │
+                    │ id          │     │             │            │
+                    │ name_tr     │     │ id          │            │
+                    │ name_lat    │     │ method      │            │
+                    │ water_pref  │     └──────┬──────┘            │
+                    │ migratory   │            │                   │
+                    │ sport_value │            │                   │
+                    │ food_value  │            │                   │
+                    │ notes       │            │                   │
+                    └──────┬──────┘            │                   │
+                           │                   │                   │
+                           └─────────┬─────────┴───────────────────┘
+                                     │
+                              ┌──────┴──────┐
+                              │fish_presence│
+                              │             │
+                              │ id          │
+                              │ water_body_id (FK)
+                              │ fish_id (FK)
+                              │ fishing_method_id (FK)
+                              │ presence_level
+                              │ catch_probability
+                              │ season_start/end
+                              │ confidence_score
+                              │ source, is_active
+                              └─────────────┘
+```
+
+---
+
+**📁 Arşiv Dosyası - Son Güncelleme: Şubat 2026**

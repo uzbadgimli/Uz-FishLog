@@ -37,6 +37,9 @@ QUICK_START.md
 # SQL data files (proprietary content)
 /sql/
 
+# CSV data exports (proprietary content)
+*.csv
+
 # vercel
 .vercel
 
