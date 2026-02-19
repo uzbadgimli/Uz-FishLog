@@ -210,6 +210,33 @@ SQL Dosyaları
 
 ---
 
+## Şubat 2026 - Lokasyon Takip Dosyası Arşivlendi
+
+### UZ-FISHLOG-EKLENECEK-YERLER.md → Arşive Taşındı
+
+**Orijinal Konum:** /UZ-FISHLOG-EKLENECEK-YERLER.md (root)
+**Yeni Konum:** /docs/archive/LOKASYON-EKLEME-TAMAMLANDI.md
+
+**Açıklama:** Bu dosya `fish_presence` tablosuna eklenmesi gereken lokasyonları takip ediyordu. Tüm bölgeler tamamlandığı için arşive taşındı.
+
+**Tamamlanan Bölgeler (Toplam ~100+ lokasyon):**
+
+| Bölge | Alt Bölge | Lokasyon Sayısı |
+|-------|-----------|-----------------|
+| Marmara Denizi | Tekirdağ, İstanbul, Kocaeli, Bursa, Yalova, Balıkesir, Çanakkale | 35 |
+| Ege Denizi | İzmir, Aydın, Muğla, Balıkesir | 17 |
+| Akdeniz | Antalya, Mersin, Adana, Hatay | 17 |
+| Karadeniz - Batı | İstanbul, Kocaeli, Sakarya, Zonguldak, Bartın, Kastamonu, Sinop, Samsun, Ordu, Giresun | 18 |
+| Karadeniz - Doğu | Trabzon, Rize, Artvin | 6 |
+| Büyük Göller | Van, Beyşehir, Eğirdir, Sapanca, Abant | 5 |
+
+**İlgili SQL Dosyaları:**
+- `sql/fish-presence-*.sql` - Bölgesel balık verileri
+
+**Tam içerik:** docs/archive/LOKASYON-EKLEME-TAMAMLANDI.md dosyasında mevcut.
+
+---
+
 ## Kural: Bundan Sonra
 
 1. **Hiçbir bilgi tamamen silinmeyecek**
@@ -219,4 +246,4 @@ SQL Dosyaları
 
 ---
 
-*Son güncelleme: Şubat 2026*
+*Son güncelleme: Şubat 2026 - Lokasyon takip dosyası arşivlendi*
