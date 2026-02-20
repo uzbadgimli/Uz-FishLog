@@ -37,7 +37,7 @@
 - [ ] App icon ve splash screen
 
 ### Bölgesel Balık Verisi
-- [ ] Diğer bölgeler için: `UZ-FISHLOG-EKLENECEK-YERLER.md`
+- [x] Tüm Türkiye lokasyonları eklendi ✓ (bkz: `docs/archive/LOKASYON-EKLEME-TAMAMLANDI.md`)
 - [ ] İl/ilçe bazlı balık önerileri entegrasyonu (mobil)
 - [ ] Sezonluk balık takvimi (mobil)
 
@@ -147,7 +147,7 @@ confidence_score, source, is_active
 | Dosya | Açıklama |
 |-------|----------|
 | `UZ-FISHLOG-ARSIV.md` | Eski kararlar, tamamlanan özellikler, detaylı şema |
-| `UZ-FISHLOG-EKLENECEK-YERLER.md` | Balık verisi eklenecek lokasyonlar |
+| `docs/archive/LOKASYON-EKLEME-TAMAMLANDI.md` | Tamamlanan lokasyonlar arşivi |
 | `UZ-FISHLOG-SILINENLER.md` | Döküman değişiklik takibi (neyin nereye taşındığı) |
 | `sql/` | Bölgesel balık SQL dosyaları |
 | `fish_species.csv` | Balık türleri ve UUID'leri |
