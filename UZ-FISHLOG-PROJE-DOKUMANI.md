@@ -19,11 +19,11 @@
 
 ## Sonraki Adımlar
 
-### Mobil - Hava Durumu Tab (Öncelikli)
-- [ ] Favori lokasyon düzenleme (isim değiştirme)
-- [ ] Kullanıcı default lokasyon seçimi
-- [ ] 7 günlük hava tahmini
-- [ ] Saatlik hava detayı (bugüne tıklayınca)
+### Mobil - Hava Durumu Tab ✅
+- [x] Favori lokasyon düzenleme (isim değiştirme)
+- [x] Kullanıcı default lokasyon seçimi
+- [x] 7 günlük hava tahmini
+- [x] Saatlik hava detayı (bugüne tıklayınca)
 
 ### Mobil - Kısa Vadeli
 - [ ] Fotoğraf yükleme (expo-image-picker)
