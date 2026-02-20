@@ -40,6 +40,9 @@ QUICK_START.md
 # CSV data exports (proprietary content)
 *.csv
 
+# Logo source files (originals)
+/Logo/
+
 # vercel
 .vercel
 

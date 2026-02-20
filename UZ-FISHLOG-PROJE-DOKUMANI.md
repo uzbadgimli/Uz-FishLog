@@ -1,4 +1,4 @@
-# UZ-FISHLOG - Proje Dokümantasyonu v2.2
+# UZ-FISHLOG - Proje Dokümantasyonu v2.3
 
 ## Proje Özeti
 
@@ -11,7 +11,7 @@
 | Platform | Versiyon | Teknoloji | Durum |
 |----------|----------|-----------|-------|
 | Web | v1.7.0 | Next.js 16.1.1 | Stabil, bakım modunda |
-| Mobil | v2.2.0 | Expo SDK 54 | Aktif geliştirme |
+| Mobil | v2.3.0 | Expo SDK 54 | Aktif geliştirme |
 
 **Konum:** `uz-fishlog/` (web), `uz-fishlog-mobile/` (mobil)
 
@@ -25,16 +25,16 @@
 - [x] 7 günlük hava tahmini
 - [x] Saatlik hava detayı (bugüne tıklayınca)
 
-### Mobil - Kısa Vadeli
-- [ ] Fotoğraf yükleme (expo-image-picker)
-- [ ] Av silme/düzenleme
-- [ ] Pull-to-refresh
-- [ ] Loading skeletons
+### Mobil - Kısa Vadeli ✅
+- [x] Fotoğraf yükleme (expo-image-picker)
+- [x] Av silme/düzenleme
+- [x] Pull-to-refresh
+- [x] Loading skeletons
 
 ### Mobil - Orta Vadeli
 - [ ] Push notifications (expo-notifications)
-- [ ] Offline mode (basic)
-- [ ] App icon ve splash screen
+- [x] ~~Offline mode~~ (iptal - anlık hava verisi gerekli)
+- [x] App icon ve splash screen
 
 ### Bölgesel Balık Verisi
 - [x] Tüm Türkiye lokasyonları eklendi ✓ (bkz: `docs/archive/LOKASYON-EKLEME-TAMAMLANDI.md`)
@@ -80,8 +80,8 @@
 ### Yayın Öncesi Yapılacaklar
 - [ ] Privacy Policy sayfası
 - [ ] Terms of Service sayfası
-- [ ] App icon tasarımı
-- [ ] Splash screen tasarımı
+- [x] App icon tasarımı ✓
+- [x] Splash screen tasarımı ✓
 - [ ] Store açıklamaları (TR/EN)
 - [ ] Store görselleri (screenshots)
 

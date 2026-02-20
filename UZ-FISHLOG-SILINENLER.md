@@ -237,6 +237,33 @@ SQL Dosyaları
 
 ---
 
+## Şubat 2026 - Mobil Kısa Vadeli Özellikler Tamamlandı
+
+### Tamamlanan Özellikler
+
+**Mobil - Kısa Vadeli ✅** (catches.tsx)
+- Fotoğraf yükleme (expo-image-picker) - Kamera ve galeri desteği
+- Av silme/düzenleme - Modal ile edit, Alert ile onaylı silme
+- Pull-to-refresh - RefreshControl komponenti
+- Loading skeletons - Yükleme sırasında placeholder kartlar
+
+**Mobil - Orta Vadeli (Kısmi) ✅**
+- App icon ve splash screen - Kullanıcının hazırladığı logo ile
+  - icon.png: Balık makarası sembolü (f harfi)
+  - splash-icon.png: Logo + "FishLog" yazısı
+  - Beyaz arka plan (#ffffff)
+
+**İptal Edilen:**
+- Offline mode - İptal edildi (anlık hava verisi gerekli olduğundan)
+
+### Plan Dosyası Tamamlandı
+
+**Dosya:** `.claude/plans/dapper-prancing-tide.md`
+**İçerik:** Mobil Kısa Vadeli Özellikler uygulama planı
+**Durum:** Tamamlandı, arşivlendi
+
+---
+
 ## Kural: Bundan Sonra
 
 1. **Hiçbir bilgi tamamen silinmeyecek**
@@ -246,4 +273,4 @@ SQL Dosyaları
 
 ---
 
-*Son güncelleme: Şubat 2026 - Lokasyon takip dosyası arşivlendi*
+*Son güncelleme: Şubat 2026 - Mobil kısa vadeli özellikler tamamlandı, icon/splash eklendi*
