@@ -273,4 +273,200 @@ SQL Dosyaları
 
 ---
 
-*Son güncelleme: Şubat 2026 - Mobil kısa vadeli özellikler tamamlandı, icon/splash eklendi*
+## Şubat 2026 - Push Notifications + Typography + Arşiv Temizliği
+
+### Arşive Taşınan Bölümler (ARSIV.md'ye eklendi)
+
+#### 1. Mobil - Hava Durumu Tab ✅
+**Orijinal Konum:** PROJE-DOKUMANI.md > "Sonraki Adımlar" > "Mobil - Hava Durumu Tab"
+**Yeni Konum:** ARSIV.md > "Tamamlanan Mobil Özellikler (Şubat 2026)"
+
+İçerik: Favori lokasyon düzenleme, default lokasyon seçimi, 7 günlük tahmin, saatlik detay
+
+#### 2. Mobil - Kısa Vadeli ✅
+**Orijinal Konum:** PROJE-DOKUMANI.md > "Sonraki Adımlar" > "Mobil - Kısa Vadeli"
+**Yeni Konum:** ARSIV.md > "Tamamlanan Mobil Özellikler (Şubat 2026)"
+
+İçerik: Fotoğraf yükleme, av silme/düzenleme, pull-to-refresh, loading skeletons
+
+#### 3. Mobil - Orta Vadeli ✅
+**Orijinal Konum:** PROJE-DOKUMANI.md > "Sonraki Adımlar" > "Mobil - Orta Vadeli"
+**Yeni Konum:** ARSIV.md > "Tamamlanan Mobil Özellikler (Şubat 2026)"
+
+İçerik: Push notifications (expo-notifications, local scheduled), ~~offline mode~~ (iptal), app icon/splash
+
+#### 4. Genel UI İyileştirmeleri ✅
+**Orijinal Konum:** PROJE-DOKUMANI.md > "Sonraki Adımlar" > "Genel UI İyileştirmeleri"
+**Yeni Konum:** ARSIV.md > "Tamamlanan Mobil Özellikler (Şubat 2026)"
+
+İçerik: Typography standardizasyonu — utils/typography.ts, 18→11 token, 16 semantik stil, 5 ekrana uygulandı
+
+### Eklenen Yeni Dosyalar
+- `utils/notifications.ts` — Bildirim sistemi (izin, planlama, iptal)
+- `utils/typography.ts` — Merkezi tipografi tokenleri
+
+### Güncellenen Dosyalar
+- `app.json` — expo-notifications plugin + Android izinleri
+- `app/_layout.tsx` — Bildirim başlatma + response handler
+- `locales/tr.json` — Bildirim metinleri (notifications bölümü)
+- `locales/en.json` — Bildirim metinleri (notifications bölümü)
+- Tüm 5 tab ekranı — typography.ts import + style güncelleme
+
+---
+
+---
+
+## Mart 2026 - Bölgesel Balık Verisi + Tatlı Su + Hibrit Sistem
+
+### Arşive Taşınan Bölümler (ARSIV.md'ye eklendi)
+
+#### 1. Bölgesel Balık Verisi ✅ (Tüm alt maddeler tamamlandı)
+**Orijinal Konum:** PROJE-DOKUMANI.md > "Sonraki Adımlar" > "Bölgesel Balık Verisi"
+**Yeni Konum:** ARSIV.md > "Tamamlanan Özellikler (Mart 2026)"
+
+İçerik:
+- Tüm Türkiye lokasyonları eklendi ✓
+- İl/ilçe bazlı balık önerileri entegrasyonu (mobil) ✓
+- Sezonluk balık takvimi (mobil) ✓
+- Hibrit balık öneri sistemi ✓ (hava durumu + bölgesel veri birleştirildi)
+  - `hybridFishScore.ts`: Sıcaklık, rüzgar, basınç + balık davranış profilleri → skorlama
+  - Weather tab'da tek "Bugün Ne Avlanır?" kartı, water body bulunamazsa eski öneri fallback
+
+### Kaldırılan/Birleştirilen Bölümler
+
+#### 1. Referans Veri Kaynakları → Global Strateji'ye Birleştirildi
+**Orijinal Konum:** PROJE-DOKUMANI.md > "Sonraki Adımlar" > "Referans Veri Kaynakları"
+**Yeni Konum:** PROJE-DOKUMANI.md > "Global Strateji (Uzun Vade)" > Faz 2-4 içinde
+
+Orijinal içerik:
+```
+Referans Veri Kaynakları (Uzun Vade)
+- FishBase/OBIS entegrasyonu: 257+ tür, koordinat bazlı gözlem verisi
+- Crowdsourcing: Kullanıcı catch loglarından öğrenme
+- AI + Forum scraping: Yeni ülkeler için otomatik veri toplama
+```
+→ Faz 2 (Crowdsourcing), Faz 3 (AI + Forum), Faz 4 (FishBase/OBIS) altına dağıtıldı.
+
+#### 2. Tatlı Su Balıkları TODO → Tamamlandı, Arşivlendi
+**Orijinal Konum:** PROJE-DOKUMANI.md > "Sonraki Adımlar" > "Tatlı Su Balıkları"
+**Yeni Konum:** ARSIV.md > "Tamamlanan Özellikler (Mart 2026)" > "Tatlı Su Balıkları ✅"
+
+Orijinal içerik:
+```
+Tatlı Su Balıkları
+- [ ] fishSpecies.ts'e water_preference alanı ekle
+- [ ] Tatlı su balıklarını ekle (8 tür)
+- [ ] Av kayıt formunda su tipi filtresi
+- [ ] fish_species tablosuna yeni türler (SQL)
+```
+→ Tümü tamamlandı, arşive taşındı.
+
+### Eklenen Yeni Dosyalar
+- `utils/hybridFishScore.ts` — Hibrit balık skorlama (35 profil, 4-faktör)
+- `sql/fish-species-freshwater.sql` — 6 tatlı su türü + 10 fish_presence
+
+### Güncellenen Dosyalar
+- `utils/regionalFish.ts` — water_temp_min/max eklendi
+- `data/fishSpecies.ts` — Yeniden yapılandırıldı (water_preference)
+- `app/(tabs)/weather.tsx` — Tek hibrit kart (iki ayrı kart yerine)
+- `app/(tabs)/catches.tsx` — Su tipi filtre chip'leri
+- `locales/tr.json`, `locales/en.json` — hybrid, allWater/saltWater/freshWater çevirileri
+- `fish_species.csv` — 6 yeni tatlı su kaydı
+
+---
+
+---
+
+## Mart 2026 - Sosyal Sistem + Ayarlar Tamamlandı
+
+### Arşive Taşınan Bölümler (ARSIV.md'ye eklendi)
+
+#### 1. Header UI ✅
+**Orijinal Konum:** PROJE-DOKUMANI.md > "Yapılacaklar" > "Header UI"
+**Yeni Konum:** ARSIV.md > "Tamamlanan Özellikler (Mart 2026 - Sosyal Sistem)"
+
+İçerik: Avatar butonu (sol, badge ile), gear ikonu (sağ), 5 tab korundu
+
+#### 2. Ayarlar (⚙️ Gear ikonu → Modal/Sheet) ✅
+**Orijinal Konum:** PROJE-DOKUMANI.md > "Yapılacaklar" > "Ayarlar"
+**Yeni Konum:** ARSIV.md > "Tamamlanan Özellikler (Mart 2026 - Sosyal Sistem)"
+
+İçerik: Dil, tema, bildirim, hesap, legal linkler, versiyon — settings.tsx
+
+#### 3. Profil & Sosyal ✅
+**Orijinal Konum:** PROJE-DOKUMANI.md > "Yapılacaklar" > "Profil & Sosyal"
+**Yeni Konum:** ARSIV.md > "Tamamlanan Özellikler (Mart 2026 - Sosyal Sistem)"
+
+İçerik: Profil düzenleme, arkadaş sistemi (email ile ekleme, istek/onay/red, favori), gizlilik (public/friends/private), header avatar + badge
+
+#### 4. Sosyal Feed ✅
+**Orijinal Konum:** PROJE-DOKUMANI.md > "Yapılacaklar" > "Sosyal Feed"
+**Yeni Konum:** ARSIV.md > "Tamamlanan Özellikler (Mart 2026 - Sosyal Sistem)"
+
+İçerik: Arkadaş avları akışı (index.tsx), paylaşım seçenekleri (catches.tsx visibility selector)
+
+### Proje Dökümanında Kalan (Taşınmayan)
+- "Av kartına tıklayınca detay" — "Sonraki İterasyon" altına taşındı (hâlâ TODO)
+- "AI ve Monetizasyon" bölümü — aynen kaldı (hâlâ TODO)
+
+### Eklenen Yeni Dosyalar (Bu iterasyonda)
+- `sql/social-profiles.sql` — Profil, arkadaşlık tabloları, RLS, RPC
+- `contexts/ProfileContext.tsx` — Profil ve arkadaşlık context
+- `app/profile.tsx` — Profil ekranı
+- `app/settings.tsx` — Ayarlar modal ekranı
+
+---
+
+*Son güncelleme: Mart 2026 - Sosyal sistem ve ayarlar tamamlandı, arşive taşındı*
+
+---
+
+## Haziran 2026 — Premium Sistem & UI İyileştirmeleri
+
+### Kaldırılan Özellikler / Değişenler
+
+#### 1. Profil Sayfası — Catch Visibility Bölümü
+**Neden kaldırıldı:** Kullanıcı bazlı default yerine av bazlı seçim daha mantıklı.
+**Nerede:** `profile.tsx` > "Av Gizliliği" kartı tamamen silindi.
+**Yerine:** Av kaydederken form içinde herkese açık/arkadaşlar/gizli seçimi.
+**`handleVisibilityChange` fonksiyonu da silindi.**
+
+#### 2. Arkadaş Sayı Sınırı
+**Neden kaldırıldı:** Sosyal büyüme = daha fazla kullanıcı; sınır koymak anlamsız.
+**Değişen:** `SubscriptionContext.FREE_LIMITS.maxFriends`: 5 → 0 (0 = sınırsız)
+**`paywall.tsx` features tablosundan "friends" satırı kaldırıldı.**
+
+#### 3. Analytics 30 Gün Limiti → 180 Gün
+**Neden değişti:** 30 gün çok kısıtlayıcı; free kullanıcıya da değer verilmeli.
+**Değişen:** `FREE_LIMITS.analyticsRange`: 30 → 180
+**`paywall.tsx`:** `'30d'` → `'180d'`, `t('paywall.thirtyDays')` → `t('paywall.sixMonths')`
+
+#### 4. Default Lokasyon Kartal → Sarıyer
+**Neden değişti:** Balıkçılık uygulaması için Boğaz'da daha anlamlı bir konum.
+**Değişen:** `weather.tsx` DEFAULT_LOCATIONS, `SelectedLocationContext` default değeri.
+**`index.tsx`:** `DEFAULT_LOCATION` sabiti tamamen silindi.
+
+#### 5. Ana Sayfa — Kartal Fallback Hava Durumu
+**Neden kaldırıldı:** Konum eklenmemişse yanlış şehrin havası gösterilmemeli.
+**Yerine:** "Konum Seçilmedi" mesajı + Hava Durumu tabına yönlendirme butonu.
+**Silinen:** `fetchWeather()` fonksiyonu (`index.tsx`'ten tamamen kaldırıldı).
+
+#### 6. "Sadece Arkadaşlar" → "Arkadaşlar"
+**Neden değişti:** Uzun metin ikon taşmasına neden oluyordu.
+**Değişen:** `locales/tr.json`: `visibilityFriends`, `locales/en.json`: `visibilityFriends`
+
+#### 7. Fiyatlar Güncellendi
+**Eski:** ₺49/ay, ₺349/yıl
+**Yeni:** ₺39/ay, ₺299/yıl
+**Değişen:** `paywall.tsx` fiyat metinleri, `PROJE-DOKUMANI.md`
+
+### Taşınan → Arşiv
+Tüm tamamlanan özellikler `ARSIV.md` > "Haziran 2026 (v2.4)" bölümüne taşındı.
+`PROJE-DOKUMANI.md`'den kaldırılan tamamlanmış maddeler:
+- AI Balık Tanıma implementasyonu
+- SubscriptionContext + DB şeması
+- Paywall ekranı
+- Feature gating
+- Tüm UI iyileştirmeleri (collapsible form, küçük foto butonları, aktivite skoru vb.)
+
+*Son güncelleme: Haziran 2026*

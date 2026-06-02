@@ -1,4 +1,4 @@
-# UZ-FISHLOG - Proje Dokümantasyonu v2.3
+# UZ-FISHLOG - Proje Dokümantasyonu v2.4
 
 ## Proje Özeti
 
@@ -11,65 +11,15 @@
 | Platform | Versiyon | Teknoloji | Durum |
 |----------|----------|-----------|-------|
 | Web | v1.7.0 | Next.js 16.1.1 | Stabil, bakım modunda |
-| Mobil | v2.3.0 | Expo SDK 54 | Aktif geliştirme |
+| Mobil | v2.4.0 | Expo SDK 54 | Aktif geliştirme |
 
 **Konum:** `uz-fishlog/` (web), `uz-fishlog-mobile/` (mobil)
 
 ---
 
-## Sonraki Adımlar
+## Yayın Durumu
 
-### Mobil - Hava Durumu Tab ✅
-- [x] Favori lokasyon düzenleme (isim değiştirme)
-- [x] Kullanıcı default lokasyon seçimi
-- [x] 7 günlük hava tahmini
-- [x] Saatlik hava detayı (bugüne tıklayınca)
-
-### Mobil - Kısa Vadeli ✅
-- [x] Fotoğraf yükleme (expo-image-picker)
-- [x] Av silme/düzenleme
-- [x] Pull-to-refresh
-- [x] Loading skeletons
-
-### Mobil - Orta Vadeli
-- [ ] Push notifications (expo-notifications)
-- [x] ~~Offline mode~~ (iptal - anlık hava verisi gerekli)
-- [x] App icon ve splash screen
-
-### Bölgesel Balık Verisi
-- [x] Tüm Türkiye lokasyonları eklendi ✓ (bkz: `docs/archive/LOKASYON-EKLEME-TAMAMLANDI.md`)
-- [ ] İl/ilçe bazlı balık önerileri entegrasyonu (mobil)
-- [ ] Sezonluk balık takvimi (mobil)
-
-### Genel UI İyileştirmeleri (Gelecek)
-- [ ] Font değişikliği (Web + Mobil)
-  - Önerilen: Inter, Poppins, Nunito, Space Grotesk
-  - Mobil: expo-font ile Google Fonts
-  - Web: next/font ile Google Fonts
-
-### Referans Veri Kaynakları (Düşük Öncelik)
-- [ ] FishBase'den Türkiye/Marmara tür listesi
-- [ ] OBIS'ten koordinat bazlı gözlem verisi
-- [ ] `fish_species_reference` tablosu (ham veri, UI'da gösterilmeyecek)
-- [ ] Crowdsource: Kullanıcı avlarından otomatik öğrenme (v2+)
-
-### Tatlı Su Balıkları (TODO)
-- [ ] fish_species tablosuna tatlı su balıkları eklenmeli
-- [ ] fishSpecies.ts dosyasına tatlı su balıkları eklenmeli
-- [ ] locales/tr.json ve en.json çevirileri güncellenmeli
-- [ ] Av ekleme ekranında water_preference'a göre filtreleme
-
-### Global Strateji (Uzun Vade)
-- **Faz 1:** Türkiye (elle, kaliteli veri) - Devam ediyor
-- **Faz 2:** Crowdsourcing (kullanıcı catch logları)
-- **Faz 3:** AI + Forum scraping (yeni ülkeler için)
-- **Faz 4:** FishBase/OBIS entegrasyonu
-
----
-
-## Yayın ve Monetizasyon
-
-### Platform Durumu
+### Platform
 | Platform | Durum | Maliyet |
 |----------|-------|---------|
 | Android (Play Store) | Başvuru yapıldı | $25 (tek seferlik) |
@@ -77,59 +27,105 @@
 
 **Strateji:** Android'de başla, gelir elde edince iOS'a geç.
 
-### Yayın Öncesi Yapılacaklar
-- [ ] Privacy Policy sayfası
-- [ ] Terms of Service sayfası
-- [x] App icon tasarımı ✓
-- [x] Splash screen tasarımı ✓
-- [ ] Store açıklamaları (TR/EN)
+### Yayın Bilgileri
+- **Geliştirici:** UZ FishLog (şirket yok, ileride değişebilir)
+- **İletişim:** team.uzbad@gmail.com
+- **Ülke:** Türkiye (KVKK uyumlu TR + GDPR uyumlu EN)
+
+### Yayın Öncesi Kalan
+- [ ] Store görselleri (screenshots) — ekran fotoğrafları birlikte çekilecek
+- [ ] Privacy Policy / ToS URL'leri güncellenmeli (`falancayer.com` → gerçek domain)
+
+---
+
+## Yapılacaklar
+
+### Kritik (Yayın Öncesi)
+- [ ] **RevenueCat Entegrasyonu** — Gerçek satın alma aktif etme
 - [ ] Store görselleri (screenshots)
 
-### Monetizasyon Fikirleri
-- Freemium model (temel özellikler ücretsiz)
-- Premium abonelik: detaylı sezon verileri, offline haritalar, reklamsız
+### RevenueCat Entegrasyonu (Adımlar)
+> Paywall UI, feature gating ve DB şeması hazır. Şu an "Coming Soon" gösteriyor.
+> RevenueCat entegre edildiğinde gerçek ödeme aktif olacak.
+
+- [x] RevenueCat hesabı oluşturuldu, App Store kaydı yapıldı
+- [ ] Google Play Console'da ürünleri oluştur: `fishlog_premium_monthly` (₺39/ay), `fishlog_premium_yearly` (₺299/yıl)
+- [ ] RevenueCat'te "premium" entitlement tanımla, Google Play'e bağla
+- [ ] `react-native-purchases` paketini kur (`npx expo install react-native-purchases`)
+- [ ] `app.json`'a RevenueCat config plugin ekle
+- [ ] `SubscriptionContext.tsx`'e RevenueCat SDK entegrasyonu
+- [ ] `paywall.tsx`'teki TODO'ları gerçek purchase çağrılarıyla değiştir
+- [ ] **Not:** Expo Go'da çalışmaz → development build (EAS Build) gerekir
+- [ ] Test: Google Play sandbox ile test satın alma
+
+### Sonraki İterasyon (Yayın Sonrası)
+- [ ] Referral / davet sistemi (davet eden 1 ay ücretsiz, yeni kullanıcıya indirim)
+- [ ] Reklam entegrasyonu (Google AdMob — free kullanıcılar için)
+- [ ] Push notification genişletme (sezon bildirimleri)
+
+---
+
+## Monetizasyon Planı
+
+**Fiyat:** ₺39/ay veya ₺299/yıl
+
+| Özellik | Free | Premium |
+|---------|------|---------|
+| Av kayıt | 10/ay | Sınırsız |
+| Fotoğraf | 5/ay | Sınırsız |
+| AI Balık Tanıma | - | 20/ay |
+| Analiz geçmişi | Son 6 ay | Tüm geçmiş |
+| Arkadaş | Sınırsız | Sınırsız |
+| Reklamlar | Var | Yok |
 
 ---
 
 ## Teknik Altyapı
 
-### Backend (Ortak)
+### Backend
 - **Database:** Supabase (PostgreSQL)
 - **Auth:** Supabase Auth
 - **Storage:** Supabase Storage (catch-photos)
+- **Edge Functions:** Supabase (identify-fish — Claude Vision API)
 - **API:** OpenMeteo (hava + marine)
 
-### Web Stack
-- Next.js 16.1.1, CSS Modules, Leaflet
-
 ### Mobil Stack
-- Expo SDK 54, Expo Router, react-native-maps, expo-location
+- Expo SDK 54, Expo Router, react-native-maps, expo-location, expo-notifications
+
+### Önemli Context'ler
+- `SubscriptionContext` — tier, usage, feature gating
+- `SelectedLocationContext` — hava + aktivite tab lokasyon senkronizasyonu
+- `AuthContext`, `ThemeContext`, `LanguageContext`, `ProfileContext`
 
 ---
 
-## Veritabanı - Bölgesel Balık Sistemi
+## Veritabanı
 
-### Mevcut Veri
-- 81 il, 973 ilçe (tüm Türkiye)
-- ~110 su kütlesi (Marmara, Ege, Akdeniz, Karadeniz)
-- 28 balık türü (20 tuzlu su, 8 tatlı su)
-- fish_presence: ~400 kayıt (aktif doldurulma devam ediyor)
+### Tablolar
+- `catches` — av kayıtları
+- `user_profiles` — profil bilgileri
+- `fav_places` — favori lokasyonlar
+- `user_subscriptions` — tier (free/premium), RevenueCat customer ID
+- `user_usage` — aylık kullanım sayaçları (catches, photos, ai_identifications)
+- `fish_identifications` — AI tanıma geçmişi
+- `friendships` — arkadaşlık bağları
+- `water_bodies`, `fish_species`, `fish_presence` — bölgesel balık sistemi
 
-### Kritik Tablo: fish_presence
-```sql
-water_body_id, fish_id, fishing_method_id
-presence_level    -- abundant / common / rare
-catch_probability -- 1-100
-season_start, season_end  -- ay (1-12)
-depth_min, depth_max
-best_time_of_day  -- ARRAY['morning', 'evening', 'night']
-water_temp_min, water_temp_max
-confidence_score, source, is_active
-```
+### Bölgesel Balık Verisi
+- 35 balık türü (27 tuzlu su, 8 tatlı su)
+- ~400 fish_presence kaydı
 
 ### Fishing Method IDs
 - Kıyıdan: `7ea71e79-0ded-4cc8-a47e-225a4387ea18`
 - Tekneden: `22cf3531-d061-43cb-a301-e8a6a1f2c03a`
+
+---
+
+## Global Strateji (Uzun Vade)
+- **Faz 1:** Türkiye (elle, kaliteli veri) — 35 tür, ~400+ fish_presence kaydı ✓
+- **Faz 2:** Crowdsourcing (kullanıcı catch logları) + otomatik öğrenme
+- **Faz 3:** AI + Forum scraping (yeni ülkeler için)
+- **Faz 4:** FishBase/OBIS entegrasyonu
 
 ---
 
@@ -138,7 +134,6 @@ confidence_score, source, is_active
 **Her Push Öncesi:**
 - `.env` dosyaları gitignore'da mı?
 - API anahtarları hardcoded değil mi?
-- Credentials içeren dosya var mı?
 
 ---
 
@@ -146,12 +141,13 @@ confidence_score, source, is_active
 
 | Dosya | Açıklama |
 |-------|----------|
-| `UZ-FISHLOG-ARSIV.md` | Eski kararlar, tamamlanan özellikler, detaylı şema |
-| `docs/archive/LOKASYON-EKLEME-TAMAMLANDI.md` | Tamamlanan lokasyonlar arşivi |
-| `UZ-FISHLOG-SILINENLER.md` | Döküman değişiklik takibi (neyin nereye taşındığı) |
-| `sql/` | Bölgesel balık SQL dosyaları |
-| `fish_species.csv` | Balık türleri ve UUID'leri |
+| `UZ-FISHLOG-ARSIV.md` | Tamamlanan özellikler, eski kararlar |
+| `UZ-FISHLOG-SILINENLER.md` | Döküman değişiklik takibi |
+| `sql/subscription-system.sql` | Abonelik tabloları ve RLS |
+| `sql/social-profiles.sql` | Profil, arkadaşlık tabloları |
+| `supabase/functions/identify-fish/` | AI balık tanıma Edge Function |
+| `docs/store-listing.md` | Store açıklamaları (TR/EN) |
 
 ---
 
-**Son Güncelleme:** Şubat 2026 | **Geliştirici:** UZ FishLog Team
+**Son Güncelleme:** Haziran 2026 | **Geliştirici:** UZ FishLog Team

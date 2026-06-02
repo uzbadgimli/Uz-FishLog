@@ -43,6 +43,9 @@ QUICK_START.md
 # Logo source files (originals)
 /Logo/
 
+# supabase temp files
+supabase/.temp/
+
 # vercel
 .vercel
 

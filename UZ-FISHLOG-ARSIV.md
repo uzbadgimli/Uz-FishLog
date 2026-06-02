@@ -6,6 +6,39 @@ Bu dosya, UZ-FishLog projesinin detaylı geçmiş bilgilerini, referans verileri
 
 ---
 
+## ✅ Tamamlanan Özellikler — Haziran 2026 (v2.4)
+
+### Premium / Freemium Sistemi
+- `user_subscriptions`, `user_usage`, `fish_identifications` tabloları oluşturuldu
+- RLS policy'ler, `increment_usage()`, `get_or_create_usage()` fonksiyonları
+- `SubscriptionContext` — tier, usage, feature gating (canAddCatch, canAddPhoto, canIdentifyFish)
+- Paywall ekranı: free vs premium karşılaştırma tablosu, aylık/yıllık plan kartları
+- **Fiyat:** ₺39/ay, ₺299/yıl
+- **Free limitleri:** 10 av/ay, 5 fotoğraf/ay, analiz 180 gün, arkadaş sınırsız
+- **Premium:** sınırsız av+foto, AI tanıma 20/ay, reklamsız
+
+### AI Balık Tanıma
+- Supabase Edge Function: `identify-fish` (Deno + Claude Vision API)
+- Premium kontrolü, aylık 20 kullanım sınırı
+- Base64 fotoğraf → Claude Sonnet → JSON (species_tr, species_en, scientific_name, confidence, description)
+- **Standalone AI paneli** (catches tab üstü): fotoğraf seç → tanı → sonuç → "Av Olarak Kaydet"
+- Form içinde de AI butonu (fotoğraf seçince görünür, tür otomatik dolar)
+
+### UI İyileştirmeleri
+- "Yeni Av Ekle" formu collapsible yapıldı (+ toggle)
+- Fotoğraf butonları küçültüldü (yatay kompakt satır)
+- Ana sayfada aktivite skoru ay ikonunun yanında renkli badge
+- Catch visibility profil sayfasından kaldırıldı → sadece av kaydederken seçiliyor
+- "Sadece Arkadaşlar" → "Arkadaşlar" kısaltıldı
+- Settings'e "Arkadaşını Davet Et" butonu (Share API)
+
+### Lokasyon İyileştirmeleri
+- Default lokasyon Kartal → **Sarıyer** (Boğaz)
+- Konum eklenmemişse ana sayfa hava kartı → "Konum Seçilmedi" mesajı + yönlendirme
+- `SelectedLocationContext` oluşturuldu: hava tabı seçilen konum → aktivite tabına senkron
+
+---
+
 ## 🚀 Deployment Süreci
 
 ### 1. Geliştirme (Local)
@@ -412,11 +445,14 @@ uz-fishlog-mobile/
 │   │   ├── lunar.tsx       # Aktivite
 │   │   └── stats.tsx       # Analiz
 │   ├── _layout.tsx         # Root layout (providers)
-│   └── modal.tsx           # Auth modal
+│   ├── modal.tsx           # Auth modal
+│   ├── profile.tsx         # Profil & arkadaşlar
+│   └── settings.tsx        # Ayarlar modal
 ├── contexts/
 │   ├── AuthContext.tsx     # Kimlik doğrulama
 │   ├── LanguageContext.tsx # Çoklu dil (i18n)
-│   └── ThemeContext.tsx    # Dark/Light tema
+│   ├── ThemeContext.tsx    # Dark/Light tema
+│   └── ProfileContext.tsx  # Profil & arkadaşlık
 ├── data/
 │   └── fishSpecies.ts      # Balık türleri listesi (TR/EN)
 ├── lib/
@@ -508,4 +544,131 @@ created_at TIMESTAMP
 
 ---
 
-**📁 Arşiv Dosyası - Son Güncelleme: Şubat 2026**
+## ✅ Tamamlanan Mobil Özellikler (Şubat 2026)
+
+### Mobil - Hava Durumu Tab ✅
+- Favori lokasyon düzenleme (isim değiştirme)
+- Kullanıcı default lokasyon seçimi
+- 7 günlük hava tahmini
+- Saatlik hava detayı (bugüne tıklayınca)
+
+### Mobil - Kısa Vadeli ✅
+- Fotoğraf yükleme (expo-image-picker)
+- Av silme/düzenleme
+- Pull-to-refresh
+- Loading skeletons
+
+### Mobil - Orta Vadeli ✅
+- Push notifications (expo-notifications) — Local scheduled notifications
+  - Günlük balıkçılık tahmini (07:00)
+  - Yüksek aktivite uyarısı (skor >= 8, 06:00)
+  - Bildirim tercih yönetimi (AsyncStorage)
+  - Bildirime tıklayınca ilgili tab'a yönlendirme
+- ~~Offline mode~~ (iptal — anlık hava verisi gerekli)
+- App icon ve splash screen
+
+### Genel UI İyileştirmeleri ✅
+- Typography standardizasyonu (Mobil)
+  - Merkezi `utils/typography.ts` dosyası oluşturuldu
+  - 18 farklı fontSize → 11 token'a indirgendi
+  - Semantik stiller: heading1-3, body, caption, label, input, statValue vb.
+  - Tüm 5 ekrana (index, lunar, stats, catches, weather) uygulandı
+  - lineHeight ve fontWeight tutarlılığı sağlandı
+
+---
+
+## ✅ Tamamlanan Özellikler (Mart 2026)
+
+### Bölgesel Balık Verisi — Tamamlandı ✅
+- Tüm Türkiye lokasyonları eklendi (81 il, 973 ilçe, ~110 su kütlesi)
+- İl/ilçe bazlı balık önerileri entegrasyonu (mobil)
+- Sezonluk balık takvimi (mobil)
+- Hibrit balık öneri sistemi (hava durumu + bölgesel veri birleştirildi)
+
+### Tatlı Su Balıkları ✅
+- 6 yeni tür eklendi: Alabalık, Sudak, Yayın Balığı, Tatlı Su Levreği, Karabalık, Şabut
+- Toplam: 35 balık türü (27 tuzlu su, 8 tatlı su)
+- `data/fishSpecies.ts` yeniden yapılandırıldı: `water_preference` alanı (salt/fresh/both)
+- Av kayıt formuna su tipi filtresi eklendi (Tümü / Deniz / Tatlı Su chip'leri)
+- SQL: `sql/fish-species-freshwater.sql` — 6 yeni tür + 10 fish_presence kaydı
+  - Abant Gölü: Alabalık
+  - Beyşehir Gölü: Sudak (2), Yayın
+  - Sapanca Gölü: Sudak (2), Yayın, Alabalık
+  - Eğirdir Gölü: Sudak (2)
+
+### Hibrit Balık Öneri Sistemi ✅
+- `utils/hybridFishScore.ts` — 35 balık davranış profili + 4 faktörlü skorlama
+  - Sıcaklık uyumu (0-40 puan): `water_temp_min/max` ile karşılaştırma
+  - Rüzgar etkisi (0-25 puan): Balık derinlik profiline göre (surface/pelagic/bottom)
+  - Basınç etkisi (0-20 puan): Düşük/normal/yüksek basınç × derinlik
+  - Sezon bonusu (0-15 puan): Sezon ortası vs kenarı
+- Final skor: `hybridScore = (weatherScore × 0.6) + (catch_probability × 0.4)`
+- Weather tab'da iki ayrı kart → tek "Bugün Ne Avlanır?" kartı
+- Water body bulunamazsa eski `getFishSuggestion()` fallback
+- TR/EN hava durumu ipuçları (weatherTip)
+
+### Eklenen/Güncellenen Dosyalar
+- `utils/hybridFishScore.ts` — YENİ: Hibrit skorlama algoritması
+- `utils/regionalFish.ts` — GÜNCELLE: `water_temp_min/max` eklendi
+- `data/fishSpecies.ts` — YENİDEN YAZILDI: `water_preference` + tatlı su balıkları
+- `app/(tabs)/weather.tsx` — GÜNCELLE: Tek birleşik hibrit kart
+- `app/(tabs)/catches.tsx` — GÜNCELLE: Su tipi filtre chip'leri
+- `sql/fish-species-freshwater.sql` — YENİ: 6 tür + 10 fish_presence
+- `fish_species.csv` — GÜNCELLE: 6 yeni tatlı su kaydı
+- `locales/tr.json` — GÜNCELLE: hybrid, allWater, saltWater, freshWater
+- `locales/en.json` — GÜNCELLE: hybrid, allWater, saltWater, freshWater
+
+### Referans Veri Kaynakları → Global Strateji'ye Taşındı
+- FishBase/OBIS entegrasyonu → Faz 4'e eklendi
+- Crowdsourcing → Faz 2'ye eklendi
+- AI + Forum scraping → Faz 3'e eklendi
+- Ayrı bölüm olarak kaldırıldı
+
+---
+
+## ✅ Tamamlanan Özellikler (Mart 2026 - Sosyal Sistem)
+
+### Header UI ✅
+- Sol: Avatar butonu (profil sayfasına yönlendirir, bekleyen istek badge'i)
+- Sağ: Ayarlar (gear) ikonu
+- Yeni tab eklenmedi, mevcut 5 tab korundu
+
+### Ayarlar Ekranı ✅ (settings.tsx - Modal)
+- Dil seçimi (index'ten taşındı)
+- Tema seçimi (index'ten taşındı)
+- Bildirim tercihleri (AsyncStorage ile kalıcı, Switch ile toggle)
+- Hesap (giriş/çıkış, hesap silme)
+- Privacy Policy / ToS linkleri
+- Uygulama versiyonu
+
+### Profil & Sosyal Sistem ✅
+- Profil bilgileri (isim, bio, toplam av sayısı, üyelik tarihi)
+- Arkadaş sistemi (e-posta ile ekleme, istek → onay/red)
+- Arkadaşlarım listesi + favori arkadaşlar (yıldız toggle)
+- Gizlilik ayarları (avlarım: herkese/arkadaşlara/gizli)
+- Header'da avatar butonu (sol) + pending request badge
+- Veritabanı: `sql/social-profiles.sql`
+  - `user_profiles` tablosu (auto-create trigger ile)
+  - `friendships` tablosu (bidirectional after acceptance)
+  - `find_user_by_email` RPC fonksiyonu (SECURITY DEFINER)
+  - RLS politikaları (profil: herkes okur, kendi günceller; arkadaşlık: kendi görür/yönetir)
+
+### Sosyal Feed ✅
+- Arkadaş avları akışı (index.tsx'e "Arkadaş Avları" bölümü)
+- Paylaşım seçenekleri (public/friends/private) — av ekleme formunda visibility selector
+- catches tablosuna `visibility` kolonu eklendi
+
+### Eklenen/Güncellenen Dosyalar
+- `sql/social-profiles.sql` — YENİ: Profil, arkadaşlık tabloları, RLS, RPC
+- `contexts/ProfileContext.tsx` — YENİ: Profil ve arkadaşlık state yönetimi
+- `app/profile.tsx` — YENİ: Profil ekranı (düzenleme, arkadaşlar, gizlilik)
+- `app/settings.tsx` — YENİ: Ayarlar modal ekranı
+- `app/(tabs)/_layout.tsx` — GÜNCELLE: HeaderProfileButton + HeaderSettingsButton
+- `app/(tabs)/index.tsx` — GÜNCELLE: Arkadaş feed bölümü
+- `app/(tabs)/catches.tsx` — GÜNCELLE: Visibility selector
+- `app/_layout.tsx` — GÜNCELLE: ProfileProvider + profile/settings route
+- `locales/tr.json`, `locales/en.json` — GÜNCELLE: profile bölümü (35+ key)
+
+---
+
+**📁 Arşiv Dosyası - Son Güncelleme: Mart 2026**
