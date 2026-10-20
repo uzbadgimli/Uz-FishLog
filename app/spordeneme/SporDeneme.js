@@ -94,7 +94,7 @@ const sirala = (tablo, liste) =>
 export default function SporDeneme() {
   const { user, loading: authLoading, signIn, signOut } = useAuth()
 
-  const [sekme, setSekme] = useState('olcumler')
+  const [sekme, setSekme] = useState('uyeler')
   const [uyeler, setUyeler] = useState([])
   const [olcumler, setOlcumler] = useState([])
   const [yukleniyor, setYukleniyor] = useState(false)
@@ -246,7 +246,7 @@ export default function SporDeneme() {
       </div>
 
       <div style={s.sekmeler}>
-        {[['olcumler', 'Ölçümler'], ['uyeler', 'Üyeler']].map(([k, l]) => (
+        {[['uyeler', 'Üyeler'], ['olcumler', 'Ölçümler']].map(([k, l]) => (
           <button key={k} style={sekme === k ? s.sekmeAktif : s.sekme} onClick={() => { setSekme(k); setSeciliUye(null) }}>{l}</button>
         ))}
         <div style={{ flex: 1 }} />
