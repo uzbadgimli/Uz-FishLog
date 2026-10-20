@@ -67,10 +67,10 @@ function uyelikDurumu(uye) {
 function ornekVeri() {
   const gun = (n) => new Date(Date.now() - n * 86400000).toISOString().slice(0, 10)
   const uyeler = [
-    { id: 'u1', ad_soyad: 'Ayşe Yılmaz', telefon: '0532 111 22 33', email: '', dogum_tarihi: '1994-05-12', cinsiyet: 'Kadın', boy_cm: 165, uyelik_baslangic: gun(95), uyelik_bitis: gun(-85), paket: '6 Aylık', hedef: 'Kilo verme', aktif: true, notlar: 'Bel fıtığı geçmişi var, ağır squat yok.' },
-    { id: 'u2', ad_soyad: 'Zeynep Kaya', telefon: '0533 444 55 66', email: '', dogum_tarihi: '1988-11-03', cinsiyet: 'Kadın', boy_cm: 170, uyelik_baslangic: gun(60), uyelik_bitis: gun(-4), paket: 'Aylık', hedef: 'Sıkılaşma', aktif: true, notlar: '' },
-    { id: 'u3', ad_soyad: 'Elif Demir', telefon: '0535 777 88 99', email: '', dogum_tarihi: '2000-02-20', cinsiyet: 'Kadın', boy_cm: 160, uyelik_baslangic: gun(40), uyelik_bitis: gun(-50), paket: '3 Aylık', hedef: 'Kas kazanma', aktif: true, notlar: '' },
-    { id: 'u4', ad_soyad: 'Merve Çelik', telefon: '0536 123 45 67', email: '', dogum_tarihi: '1979-08-30', cinsiyet: 'Kadın', boy_cm: 158, uyelik_baslangic: gun(200), uyelik_bitis: gun(20), paket: '6 Aylık', hedef: 'Genel sağlık', aktif: false, notlar: '' },
+    { id: 'u1', ekleyen_email: 'şeyma@ornek', ad_soyad: 'Ayşe Yılmaz', telefon: '0532 111 22 33', email: '', dogum_tarihi: '1994-05-12', cinsiyet: 'Kadın', boy_cm: 165, uyelik_baslangic: gun(95), uyelik_bitis: gun(-85), paket: '6 Aylık', hedef: 'Kilo verme', aktif: true, notlar: 'Bel fıtığı geçmişi var, ağır squat yok.' },
+    { id: 'u2', ekleyen_email: 'uğur@ornek', ad_soyad: 'Zeynep Kaya', telefon: '0533 444 55 66', email: '', dogum_tarihi: '1988-11-03', cinsiyet: 'Kadın', boy_cm: 170, uyelik_baslangic: gun(60), uyelik_bitis: gun(-4), paket: 'Aylık', hedef: 'Sıkılaşma', aktif: true, notlar: '' },
+    { id: 'u3', ekleyen_email: 'ümit@ornek', ad_soyad: 'Elif Demir', telefon: '0535 777 88 99', email: '', dogum_tarihi: '2000-02-20', cinsiyet: 'Kadın', boy_cm: 160, uyelik_baslangic: gun(40), uyelik_bitis: gun(-50), paket: '3 Aylık', hedef: 'Kas kazanma', aktif: true, notlar: '' },
+    { id: 'u4', ekleyen_email: 'şeyma@ornek', ad_soyad: 'Merve Çelik', telefon: '0536 123 45 67', email: '', dogum_tarihi: '1979-08-30', cinsiyet: 'Kadın', boy_cm: 158, uyelik_baslangic: gun(200), uyelik_bitis: gun(20), paket: '6 Aylık', hedef: 'Genel sağlık', aktif: false, notlar: '' },
   ]
   const olc = (id, uye_id, g, v, notlar = '') => ({ id, uye_id, olcum_tarihi: gun(g), notlar, ...Object.fromEntries(OLCULER.map((o, i) => [o.key, v[i]])) })
   const olcumler = [
@@ -108,6 +108,7 @@ export default function SporDeneme() {
   const [demo, setDemo] = useState(false)
   const [benim, setBenim] = useState({ uyeler: [], olcumler: [] }) // üye olarak giriş yapanın kendi kayıtları
   const [yonetici, setYonetici] = useState(null) // null = henüz bilinmiyor
+  const [adlar, setAdlar] = useState({}) // yönetici e-postası -> adı
 
   // uyeGozu: salon yerine ilk örnek üyenin kendi ekranı gösterilir
   const demoBaslat = (uyeGozu = false) => {
@@ -119,6 +120,7 @@ export default function SporDeneme() {
     } else {
       setUyeler(v.uyeler)
       setOlcumler(v.olcumler)
+      setAdlar({ 'uğur@ornek': 'Uğur', 'ümit@ornek': 'Ümit', 'şeyma@ornek': 'Şeyma' })
     }
     setDemo(true)
   }
@@ -154,6 +156,8 @@ export default function SporDeneme() {
       // Yönetici tüm kayıtları görür; diğerlerine veritabanı yalnız kendi üye kaydını döndürür
       setTabloYok(false)
       if (yoneticiMi) {
+        const a = await supabase.rpc('spor_yonetici_adlari')
+        setAdlar(Object.fromEntries((a.data || []).map((x) => [x.email, x.ad])))
         setUyeler(u.data)
         setOlcumler(o.data)
         setBenim({ uyeler: [], olcumler: [] })
@@ -216,7 +220,7 @@ export default function SporDeneme() {
       uyelik_bitis: uyeForm.uyelik_bitis || null,
       cinsiyet: uyeForm.cinsiyet || null,
     }
-    const { id, sahip_id, created_at, ...alanlar } = kayit
+    const { id, sahip_id, created_at, ekleyen_email, ...alanlar } = kayit
     const { error } = await dbKaydet('spor_uyeler', id, alanlar)
     if (error) return setHata(error.message)
     setUyeForm(null)
@@ -339,7 +343,7 @@ export default function SporDeneme() {
       )}
 
       {sekme === 'uyeler' && !seciliUye && (
-        <UyeListesi uyeler={uyeler} olcumler={olcumler} onSec={setSeciliUye} />
+        <UyeListesi uyeler={uyeler} olcumler={olcumler} adlar={adlar} onSec={setSeciliUye} />
       )}
 
       {sekme === 'uyeler' && seciliUye && (
@@ -602,14 +606,16 @@ function Degisim({ fark }) {
   return <div style={{ fontSize: 11, color: '#6b7280' }}>{f > 0 ? '+' : ''}{f}</div>
 }
 
-function UyeListesi({ uyeler, olcumler, onSec }) {
+const ekleyenAdi = (adlar, email) => (email ? adlar[email] || email.split('@')[0] : '-')
+
+function UyeListesi({ uyeler, olcumler, adlar, onSec }) {
   if (!uyeler.length) return <p style={s.bos}>Henüz üye yok. &quot;+ Yeni Üye&quot; ile ekleyin.</p>
   return (
     <div style={s.tabloSar}>
       <table style={s.tablo}>
         <thead>
           <tr>
-            {['Ad Soyad', 'Telefon', 'Paket', 'Üyelik Başlangıç', 'Üyelik Bitiş', 'Durum', 'Son Ölçüm'].map((h) => <th key={h} style={s.th}>{h}</th>)}
+            {['Ad Soyad', 'Telefon', 'Paket', 'Üyelik Başlangıç', 'Üyelik Bitiş', 'Durum', 'Son Ölçüm', 'Ekleyen'].map((h) => <th key={h} style={s.th}>{h}</th>)}
           </tr>
         </thead>
         <tbody>
@@ -627,10 +633,11 @@ function UyeListesi({ uyeler, olcumler, onSec }) {
                 <td style={hucre}>{tarihTR(u.uyelik_bitis)}</td>
                 <td style={hucre}><span style={{ ...s.rozet, background: d.renk }}>{d.text}</span></td>
                 <td style={hucre}>{son ? tarihTR(son.olcum_tarihi) : '-'}</td>
+                <td style={hucre}>{ekleyenAdi(adlar, u.ekleyen_email)}</td>
               </tr>
               {u.notlar && (
                 <tr style={{ cursor: 'pointer' }} onClick={() => onSec(u)}>
-                  <td colSpan={7} style={s.notHucre}>
+                  <td colSpan={8} style={s.notHucre}>
                     <span style={s.notEtiket}>Not:</span> {u.notlar}
                   </td>
                 </tr>
