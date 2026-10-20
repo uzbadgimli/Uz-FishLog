@@ -21,6 +21,16 @@ const OLCULER = [
 ]
 
 const PAKETLER = ['Aylık', '3 Aylık', '6 Aylık', 'Yıllık', 'Ders Paketi']
+const PAKET_AY = { 'Aylık': 1, '3 Aylık': 3, '6 Aylık': 6, 'Yıllık': 12 }
+
+// Başlangıca paket süresini ekler; 31 Ocak + 1 ay = 28/29 Şubat
+function bitisHesapla(baslangic, paket) {
+  const ay = PAKET_AY[paket]
+  if (!baslangic || !ay) return null
+  const [y, a, g] = baslangic.split('-').map(Number)
+  const sonGun = new Date(Date.UTC(y, a - 1 + ay + 1, 0)).getUTCDate()
+  return new Date(Date.UTC(y, a - 1 + ay, Math.min(g, sonGun))).toISOString().slice(0, 10)
+}
 const HEDEFLER = ['Kilo verme', 'Kas kazanma', 'Sıkılaşma', 'Genel sağlık', 'Rehabilitasyon']
 
 const bugun = () => new Date().toISOString().slice(0, 10)
@@ -560,6 +570,15 @@ function Alan({ etiket, children, genis }) {
 
 function UyeFormu({ form, setForm, onKaydet, onKapat }) {
   const b = (k) => ({ value: form[k], onChange: (e) => setForm({ ...form, [k]: e.target.value }), style: s.input })
+  // Paket ya da başlangıç değişince bitiş tarihi yeniden hesaplanır (Ders Paketi'nde elle girilir)
+  const sureli = (k) => ({
+    ...b(k),
+    onChange: (e) => {
+      const yeni = { ...form, [k]: e.target.value }
+      const bitis = bitisHesapla(yeni.uyelik_baslangic, yeni.paket)
+      setForm(bitis ? { ...yeni, uyelik_bitis: bitis } : yeni)
+    },
+  })
   return (
     <Modal baslik={form.id ? 'Üyeyi Düzenle' : 'Yeni Üye'} onKapat={onKapat}>
       <form onSubmit={onKaydet} style={s.formIzgara}>
@@ -572,9 +591,9 @@ function UyeFormu({ form, setForm, onKaydet, onKapat }) {
         </Alan>
         <Alan etiket="Boy (cm)"><input {...b('boy_cm')} inputMode="decimal" /></Alan>
         <Alan etiket="Paket">
-          <select {...b('paket')}><option value="">-</option>{PAKETLER.map((p) => <option key={p}>{p}</option>)}</select>
+          <select {...sureli('paket')}><option value="">-</option>{PAKETLER.map((p) => <option key={p}>{p}</option>)}</select>
         </Alan>
-        <Alan etiket="Üyelik Başlangıç *"><input {...b('uyelik_baslangic')} type="date" required /></Alan>
+        <Alan etiket="Üyelik Başlangıç *"><input {...sureli('uyelik_baslangic')} type="date" required /></Alan>
         <Alan etiket="Üyelik Bitiş"><input {...b('uyelik_bitis')} type="date" /></Alan>
         <Alan etiket="Hedef">
           <select {...b('hedef')}><option value="">-</option>{HEDEFLER.map((h) => <option key={h}>{h}</option>)}</select>
