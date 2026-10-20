@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/app/context/AuthContext'
 import { Yoga, Pilates, Cimnastik, Esneme, Malzemeler } from './Gorseller'
@@ -72,14 +72,14 @@ function ornekVeri() {
     { id: 'u3', ad_soyad: 'Elif Demir', telefon: '0535 777 88 99', email: '', dogum_tarihi: '2000-02-20', cinsiyet: 'Kadın', boy_cm: 160, uyelik_baslangic: gun(40), uyelik_bitis: gun(-50), paket: '3 Aylık', hedef: 'Kas kazanma', aktif: true, notlar: '' },
     { id: 'u4', ad_soyad: 'Merve Çelik', telefon: '0536 123 45 67', email: '', dogum_tarihi: '1979-08-30', cinsiyet: 'Kadın', boy_cm: 158, uyelik_baslangic: gun(200), uyelik_bitis: gun(20), paket: '6 Aylık', hedef: 'Genel sağlık', aktif: false, notlar: '' },
   ]
-  const olc = (id, uye_id, g, v) => ({ id, uye_id, olcum_tarihi: gun(g), notlar: '', ...Object.fromEntries(OLCULER.map((o, i) => [o.key, v[i]])) })
+  const olc = (id, uye_id, g, v, notlar = '') => ({ id, uye_id, olcum_tarihi: gun(g), notlar, ...Object.fromEntries(OLCULER.map((o, i) => [o.key, v[i]])) })
   const olcumler = [
     olc('o1', 'u1', 90, [78.4, 34.0, 108, 102, 92, 101, 112, 64, 63.5, 31.5, 31]),
     olc('o2', 'u1', 60, [75.9, 32.5, 107, 100, 88.5, 98, 109, 62.5, 62, 31, 30.5]),
     olc('o3', 'u1', 30, [74.1, 31.2, 106, 99, 86, 96.5, 107.5, 61.5, 61, 30.5, 30]),
-    olc('o4', 'u1', 2, [72.8, 30.1, 106, 98.5, 84, 95, 106, 61, 60.5, 30, 29.5]),
+    olc('o4', 'u1', 2, [72.8, 30.1, 106, 98.5, 84, 95, 106, 61, 60.5, 30, 29.5], 'Sabah aç karnına ölçüldü. Bel bölgesinde belirgin incelme var, programa devam.'),
     olc('o5', 'u2', 58, [66.0, 27.0, 104, 94, 76, 86, 100, 58, 58, 28, 28]),
-    olc('o6', 'u2', 10, [65.2, 25.4, 104, 93.5, 74, 84, 99, 57, 57.5, 28, 27.5]),
+    olc('o6', 'u2', 10, [65.2, 25.4, 104, 93.5, 74, 84, 99, 57, 57.5, 28, 27.5], 'Tatil dönüşü ilk ölçüm.'),
     olc('o7', 'u3', 38, [52.5, 22.0, 98, 86, 66, 76, 92, 52, 52, 24.5, 24.5]),
     olc('o8', 'u3', 5, [54.0, 21.5, 100, 88, 66, 76, 94, 53.5, 53, 26, 25.5]),
   ]
@@ -416,21 +416,31 @@ function OlcumTablosu({ olcumler, uyeAdi, uyeSutunu, degisimGoster, onDuzenle, o
         <tbody>
           {olcumler.map((o, i) => {
             const onceki = degisimGoster ? olcumler[i + 1] : null
+            const hucre = o.notlar ? { ...s.td, borderBottom: 'none' } : s.td
             return (
-              <tr key={o.id}>
-                <td style={s.td}>{tarihTR(o.olcum_tarihi)}</td>
-                {uyeSutunu && <td style={{ ...s.td, textAlign: 'left', fontWeight: 600 }}>{uyeAdi[o.uye_id] || '-'}</td>}
+              <Fragment key={o.id}>
+              <tr>
+                <td style={hucre}>{tarihTR(o.olcum_tarihi)}</td>
+                {uyeSutunu && <td style={{ ...hucre, textAlign: 'left', fontWeight: 600 }}>{uyeAdi[o.uye_id] || '-'}</td>}
                 {OLCULER.map((m) => (
-                  <td key={m.key} style={s.td}>
+                  <td key={m.key} style={hucre}>
                     {o[m.key] ?? '-'}
                     {onceki && o[m.key] != null && onceki[m.key] != null && <Degisim fark={o[m.key] - onceki[m.key]} />}
                   </td>
                 ))}
-                <td style={{ ...s.td, whiteSpace: 'nowrap' }}>
+                <td style={{ ...hucre, whiteSpace: 'nowrap' }}>
                   <button style={s.linkBtn} onClick={() => onDuzenle(o)}>Düzenle</button>
                   <button style={{ ...s.linkBtn, color: '#e58a8a' }} onClick={() => onSil(o)}>Sil</button>
                 </td>
               </tr>
+              {o.notlar && (
+                <tr>
+                  <td colSpan={OLCULER.length + (uyeSutunu ? 3 : 2)} style={s.notHucre}>
+                    <span style={s.notEtiket}>Not:</span> {o.notlar}
+                  </td>
+                </tr>
+              )}
+              </Fragment>
             )
           })}
         </tbody>
@@ -670,6 +680,8 @@ const s = {
   th: { padding: '12px 8px', background: '#f1f6fd', color: '#4a6491', borderBottom: '1px solid #e2eaf6', textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 700 },
   birim: { fontSize: 10, color: '#9fb0cc', fontWeight: 400 },
   td: { padding: '9px 8px', borderBottom: '1px solid #f0f4fa', textAlign: 'center', whiteSpace: 'nowrap' },
+  notHucre: { padding: '0 12px 10px', borderBottom: '1px solid #f0f4fa', textAlign: 'left', fontSize: 13, color: '#5d6b85', whiteSpace: 'normal' },
+  notEtiket: { fontWeight: 700, color: '#8a7cc4' },
   bos: { background: '#fff', padding: 24, borderRadius: 16, textAlign: 'center', color: '#7a8499' },
   rozet: { color: '#fff', padding: '2px 8px', borderRadius: 999, fontSize: 12, fontWeight: 600 },
   detayKutu: { background: '#fff', borderRadius: 16, padding: 16, marginTop: 10, boxShadow: '0 4px 14px rgba(111,151,212,.12)' },
