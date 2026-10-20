@@ -106,17 +106,33 @@ export default function SporDeneme() {
   const [uyeForm, setUyeForm] = useState(null) // null = kapalı
   const [olcumForm, setOlcumForm] = useState(null)
   const [demo, setDemo] = useState(false)
+  const [benim, setBenim] = useState({ uyeler: [], olcumler: [] }) // üye olarak giriş yapanın kendi kayıtları
 
-  const demoBaslat = () => {
+  // uyeGozu: salon yerine ilk örnek üyenin kendi ekranı gösterilir
+  const demoBaslat = (uyeGozu = false) => {
     const v = ornekVeri()
-    setUyeler(v.uyeler)
-    setOlcumler(v.olcumler)
+    if (uyeGozu) {
+      setUyeler([])
+      setOlcumler([])
+      setBenim({ uyeler: [v.uyeler[0]], olcumler: v.olcumler.filter((o) => o.uye_id === v.uyeler[0].id) })
+    } else {
+      setUyeler(v.uyeler)
+      setOlcumler(v.olcumler)
+    }
     setDemo(true)
+  }
+
+  const demoBitir = () => {
+    setDemo(false)
+    setUyeler([])
+    setOlcumler([])
+    setBenim({ uyeler: [], olcumler: [] })
   }
 
   // ?demo ile açılırsa doğrudan örnek verilerle başla
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).has('demo')) demoBaslat()
+    const q = new URLSearchParams(window.location.search)
+    if (q.has('demo')) demoBaslat(q.get('demo') === 'uye')
   }, [])
 
   const yukle = useCallback(async () => {
@@ -131,12 +147,15 @@ export default function SporDeneme() {
       if (err.code === '42P01' || err.code === 'PGRST205') setTabloYok(true)
       else setHata(err.message)
     } else {
+      // Sorgu hem sahibi olduğu kayıtları hem e-postası eşleşen üye kaydını döndürür; ayır
       setTabloYok(false)
-      setUyeler(u.data)
-      setOlcumler(o.data)
+      const sahip = (x) => x.sahip_id === user?.id
+      setUyeler(u.data.filter(sahip))
+      setOlcumler(o.data.filter(sahip))
+      setBenim({ uyeler: u.data.filter((x) => !sahip(x)), olcumler: o.data.filter((x) => !sahip(x)) })
     }
     setYukleniyor(false)
-  }, [])
+  }, [user])
 
   useEffect(() => {
     if (user && !demo) yukle()
@@ -220,12 +239,30 @@ export default function SporDeneme() {
   if (!demo && authLoading) return <GirisKabuk><p style={{ ...s.soluk, textAlign: 'center' }}>Yükleniyor…</p></GirisKabuk>
   if (!demo && !user) return <GirisKabuk><GirisFormu signIn={signIn} onDemo={demoBaslat} /></GirisKabuk>
 
+  // Kendi salonu olmayan ama bir salonda üye kaydı bulunan kişi: yalnız kendi bilgileri, salt okunur
+  if (!uyeler.length && benim.uyeler.length) {
+    return (
+      <Kabuk
+        sag={
+          <div style={s.kullanici}>
+            <span style={s.soluk}>{demo ? 'Demo — üye gözüyle' : user.email}</span>
+            <button style={s.linkBtn} onClick={demo ? demoBitir : signOut}>Çıkış</button>
+          </div>
+        }
+      >
+        {benim.uyeler.map((u) => (
+          <UyeDetay key={u.id} uye={u} olcumler={benim.olcumler.filter((o) => o.uye_id === u.id)} salt />
+        ))}
+      </Kabuk>
+    )
+  }
+
   return (
     <Kabuk
       sag={
         <div style={s.kullanici}>
           <span style={s.soluk}>{demo ? 'Demo modu — değişiklikler kaydedilmez' : user.email}</span>
-          <button style={s.linkBtn} onClick={demo ? () => { setDemo(false); setUyeler([]); setOlcumler([]) } : signOut}>Çıkış</button>
+          <button style={s.linkBtn} onClick={demo ? demoBitir : signOut}>Çıkış</button>
         </div>
       }
     >
@@ -364,10 +401,38 @@ function GirisKabuk({ children }) {
 }
 
 function GirisFormu({ signIn, onDemo }) {
+  const [mod, setMod] = useState('uye') // 'uye' | 'salon'
   const [email, setEmail] = useState('')
   const [sifre, setSifre] = useState('')
+  const [kod, setKod] = useState('')
+  const [gonderildi, setGonderildi] = useState(false)
   const [hata, setHata] = useState('')
   const [bekle, setBekle] = useState(false)
+
+  const modDegistir = (m) => { setMod(m); setHata(''); setGonderildi(false) }
+
+  // Üye girişi: şifre yok, e-postaya giriş bağlantısı ve kod gider
+  const kodGonder = async (e) => {
+    e.preventDefault()
+    setBekle(true)
+    setHata('')
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/spordeneme/` },
+    })
+    setBekle(false)
+    if (error) return setHata(error.message.includes('rate') ? 'Çok fazla deneme, biraz sonra tekrar deneyin' : error.message)
+    setGonderildi(true)
+  }
+
+  const kodDogrula = async (e) => {
+    e.preventDefault()
+    setBekle(true)
+    setHata('')
+    const { error } = await supabase.auth.verifyOtp({ email, token: kod.trim(), type: 'email' })
+    setBekle(false)
+    if (error) setHata('Kod hatalı ya da süresi dolmuş')
+  }
 
   // Google'dan dönünce FishLog ana sayfasına değil bu sayfaya gelinsin
   const googleIle = async () => {
@@ -386,25 +451,62 @@ function GirisFormu({ signIn, onDemo }) {
     setBekle(false)
   }
 
+  const googleBtn = (
+    <button type="button" style={{ ...s.ikincilBtn, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }} onClick={googleIle}>
+      <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true">
+        <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z" />
+        <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
+        <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z" />
+        <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z" />
+      </svg>
+      Google ile giriş
+    </button>
+  )
+
   return (
-    <form onSubmit={gonder} style={s.girisKutu}>
-      <h2 style={{ margin: '0 0 4px', color: '#33415c' }}>Hoş geldiniz</h2>
-      <p style={s.soluk}>Üye bilgileri yalnızca giriş yapan hesaba görünür.</p>
-      <input style={s.input} type="email" placeholder="E-posta" value={email} onChange={(e) => setEmail(e.target.value)} required />
-      <input style={s.input} type="password" placeholder="Şifre" value={sifre} onChange={(e) => setSifre(e.target.value)} required />
-      {hata && <div style={s.hata}>{hata}</div>}
-      <button style={s.anaBtn} disabled={bekle}>{bekle ? 'Giriş yapılıyor…' : 'Giriş yap'}</button>
-      <button type="button" style={{ ...s.ikincilBtn, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }} onClick={googleIle}>
-        <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true">
-          <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z" />
-          <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
-          <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z" />
-          <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z" />
-        </svg>
-        Google ile giriş
-      </button>
-      <button type="button" style={s.ikincilBtn} onClick={onDemo}>Örnek verilerle dene</button>
-    </form>
+    <div style={s.girisKutu}>
+      <div style={s.girisSekmeler}>
+        {[['uye', 'Üye girişi'], ['salon', 'Salon girişi']].map(([k, l]) => (
+          <button key={k} type="button" style={mod === k ? s.girisSekmeAktif : s.girisSekme} onClick={() => modDegistir(k)}>{l}</button>
+        ))}
+      </div>
+
+      {mod === 'uye' && !gonderildi && (
+        <form onSubmit={kodGonder} style={s.girisForm}>
+          <p style={s.soluk}>Salona kayıtlı e-posta adresinizi yazın, size giriş bağlantısı gönderelim. Şifre gerekmez.</p>
+          <input style={s.input} type="email" placeholder="E-posta" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          {hata && <div style={s.hata}>{hata}</div>}
+          <button style={s.anaBtn} disabled={bekle}>{bekle ? 'Gönderiliyor…' : 'Giriş bağlantısı gönder'}</button>
+          {googleBtn}
+        </form>
+      )}
+
+      {mod === 'uye' && gonderildi && (
+        <form onSubmit={kodDogrula} style={s.girisForm}>
+          <p style={{ margin: 0 }}><b>{email}</b> adresine giriş bağlantısı gönderdik.</p>
+          <p style={s.soluk}>E-postadaki bağlantıya tıklayın. E-postada 6 haneli bir kod varsa buraya da yazabilirsiniz. Gelen kutusunda yoksa spam klasörüne bakın.</p>
+          <input style={{ ...s.input, letterSpacing: 4, textAlign: 'center' }} inputMode="numeric" autoComplete="one-time-code" placeholder="Kod" value={kod} onChange={(e) => setKod(e.target.value)} required />
+          {hata && <div style={s.hata}>{hata}</div>}
+          <button style={s.anaBtn} disabled={bekle}>{bekle ? 'Kontrol ediliyor…' : 'Giriş yap'}</button>
+          <button type="button" style={s.linkBtn} onClick={() => { setGonderildi(false); setKod('') }}>Farklı e-posta / tekrar gönder</button>
+        </form>
+      )}
+
+      {mod === 'salon' && (
+        <form onSubmit={gonder} style={s.girisForm}>
+          <p style={s.soluk}>Salon yöneticisi girişi. Üye bilgileri yalnızca giriş yapan hesaba görünür.</p>
+          <input style={s.input} type="email" placeholder="E-posta" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <input style={s.input} type="password" placeholder="Şifre" value={sifre} onChange={(e) => setSifre(e.target.value)} required />
+          {hata && <div style={s.hata}>{hata}</div>}
+          <button style={s.anaBtn} disabled={bekle}>{bekle ? 'Giriş yapılıyor…' : 'Giriş yap'}</button>
+          {googleBtn}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button type="button" style={{ ...s.ikincilBtn, flex: 1 }} onClick={() => onDemo(false)}>Örnek: salon</button>
+            <button type="button" style={{ ...s.ikincilBtn, flex: 1 }} onClick={() => onDemo(true)}>Örnek: üye gözüyle</button>
+          </div>
+        </form>
+      )}
+    </div>
   )
 }
 
@@ -428,7 +530,7 @@ function OlcumTablosu({ olcumler, uyeAdi, uyeSutunu, degisimGoster, onDuzenle, o
             <th style={s.th}>Tarih</th>
             {uyeSutunu && <th style={s.th}>Üye</th>}
             {OLCULER.map((o) => <th key={o.key} style={s.th}>{o.label}<div style={s.birim}>{o.birim}</div></th>)}
-            <th style={s.th}></th>
+            {onDuzenle && <th style={s.th}></th>}
           </tr>
         </thead>
         <tbody>
@@ -446,14 +548,16 @@ function OlcumTablosu({ olcumler, uyeAdi, uyeSutunu, degisimGoster, onDuzenle, o
                     {onceki && o[m.key] != null && onceki[m.key] != null && <Degisim fark={o[m.key] - onceki[m.key]} />}
                   </td>
                 ))}
-                <td style={{ ...hucre, whiteSpace: 'nowrap' }}>
-                  <button style={s.linkBtn} onClick={() => onDuzenle(o)}>Düzenle</button>
-                  <button style={{ ...s.linkBtn, color: '#e58a8a' }} onClick={() => onSil(o)}>Sil</button>
-                </td>
+                {onDuzenle && (
+                  <td style={{ ...hucre, whiteSpace: 'nowrap' }}>
+                    <button style={s.linkBtn} onClick={() => onDuzenle(o)}>Düzenle</button>
+                    <button style={{ ...s.linkBtn, color: '#e58a8a' }} onClick={() => onSil(o)}>Sil</button>
+                  </td>
+                )}
               </tr>
               {o.notlar && (
                 <tr>
-                  <td colSpan={OLCULER.length + (uyeSutunu ? 3 : 2)} style={s.notHucre}>
+                  <td colSpan={OLCULER.length + 1 + (uyeSutunu ? 1 : 0) + (onDuzenle ? 1 : 0)} style={s.notHucre}>
                     <span style={s.notEtiket}>Not:</span> {o.notlar}
                   </td>
                 </tr>
@@ -515,7 +619,7 @@ function UyeListesi({ uyeler, olcumler, onSec }) {
   )
 }
 
-function UyeDetay({ uye, olcumler, onGeri, onDuzenle, onSil, onOlcumEkle, onOlcumDuzenle, onOlcumSil }) {
+function UyeDetay({ uye, olcumler, onGeri, onDuzenle, onSil, onOlcumEkle, onOlcumDuzenle, onOlcumSil, salt }) {
   const d = uyelikDurumu(uye)
   const ilk = olcumler[olcumler.length - 1]
   const son = olcumler[0]
@@ -523,14 +627,14 @@ function UyeDetay({ uye, olcumler, onGeri, onDuzenle, onSil, onOlcumEkle, onOlcu
 
   return (
     <div>
-      <button style={s.linkBtn} onClick={onGeri}>← Üye listesi</button>
+      {!salt && <button style={s.linkBtn} onClick={onGeri}>← Üye listesi</button>}
       <div style={s.detayKutu}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <h2 style={{ margin: 0 }}>{uye.ad_soyad}</h2>
           <span style={{ ...s.rozet, background: d.renk }}>{d.text}</span>
           <div style={{ flex: 1 }} />
-          <button style={s.ikincilBtn} onClick={() => onDuzenle(uye)}>Düzenle</button>
-          <button style={{ ...s.ikincilBtn, color: '#e58a8a' }} onClick={() => onSil(uye)}>Sil</button>
+          {!salt && <button style={s.ikincilBtn} onClick={() => onDuzenle(uye)}>Düzenle</button>}
+          {!salt && <button style={{ ...s.ikincilBtn, color: '#e58a8a' }} onClick={() => onSil(uye)}>Sil</button>}
         </div>
         <div style={s.bilgiIzgara}>
           <Bilgi e="Telefon" d={uye.telefon} />
@@ -543,7 +647,7 @@ function UyeDetay({ uye, olcumler, onGeri, onDuzenle, onSil, onOlcumEkle, onOlcu
           <Bilgi e="Hedef" d={uye.hedef} />
           <Bilgi e="Üyelik" d={`${tarihTR(uye.uyelik_baslangic)} → ${tarihTR(uye.uyelik_bitis)}`} />
         </div>
-        {uye.notlar && <p style={{ margin: '8px 0 0' }}><b>Not:</b> {uye.notlar}</p>}
+        {!salt && uye.notlar && <p style={{ margin: '8px 0 0' }}><b>Not:</b> {uye.notlar}</p>}
       </div>
 
       {ilk && son && ilk !== son && (
@@ -567,9 +671,9 @@ function UyeDetay({ uye, olcumler, onGeri, onDuzenle, onSil, onOlcumEkle, onOlcu
 
       <div style={{ display: 'flex', alignItems: 'center', margin: '16px 0 8px' }}>
         <h3 style={{ margin: 0, flex: 1 }}>Ölçümler</h3>
-        <button style={s.anaBtn} onClick={onOlcumEkle}>+ Ölçüm Ekle</button>
+        {!salt && <button style={s.anaBtn} onClick={onOlcumEkle}>+ Ölçüm Ekle</button>}
       </div>
-      <OlcumTablosu olcumler={olcumler} uyeAdi={{}} uyeSutunu={false} degisimGoster onDuzenle={onOlcumDuzenle} onSil={onOlcumSil} />
+      <OlcumTablosu olcumler={olcumler} uyeAdi={{}} uyeSutunu={false} degisimGoster onDuzenle={salt ? null : onOlcumDuzenle} onSil={onOlcumSil} />
     </div>
   )
 }
@@ -717,6 +821,10 @@ const s = {
   degisimIzgara: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 8, marginTop: 10 },
   degisimKart: { background: '#f4f7fd', borderRadius: 12, padding: 8, textAlign: 'center' },
   girisKutu: { background: 'rgba(255,255,255,.92)', padding: 26, borderRadius: 22, display: 'flex', flexDirection: 'column', gap: 10, boxShadow: '0 12px 40px rgba(80,120,190,.18)' },
+  girisForm: { display: 'flex', flexDirection: 'column', gap: 10 },
+  girisSekmeler: { display: 'flex', gap: 4, background: '#eef3fb', padding: 4, borderRadius: 999, marginBottom: 4 },
+  girisSekme: { flex: 1, padding: '8px 10px', borderRadius: 999, border: 'none', background: 'transparent', color: '#7a8499', cursor: 'pointer', fontWeight: 600, fontSize: 14 },
+  girisSekmeAktif: { flex: 1, padding: '8px 10px', borderRadius: 999, border: 'none', background: '#fff', color: '#3d5f95', cursor: 'pointer', fontWeight: 700, fontSize: 14, boxShadow: '0 1px 4px rgba(80,120,190,.15)' },
   girisSayfa: { position: 'relative', minHeight: '100vh', overflow: 'hidden', background: 'radial-gradient(circle at 20% 15%, #e9e2fb 0%, transparent 45%), radial-gradient(circle at 85% 90%, #fde6dc 0%, transparent 40%), linear-gradient(160deg, #dceafd 0%, #cfe0f8 100%)', color: YAZI, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, boxSizing: 'border-box' },
   girisOrta: { position: 'relative', zIndex: 1, width: '100%', maxWidth: 380 },
   kose: { position: 'absolute', pointerEvents: 'none' },
