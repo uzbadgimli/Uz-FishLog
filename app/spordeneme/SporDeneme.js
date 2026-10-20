@@ -469,16 +469,26 @@ function UyeListesi({ uyeler, olcumler, onSec }) {
           {uyeler.map((u) => {
             const d = uyelikDurumu(u)
             const son = olcumler.find((o) => o.uye_id === u.id)
+            const hucre = u.notlar ? { ...s.td, borderBottom: 'none' } : s.td
             return (
-              <tr key={u.id} style={{ cursor: 'pointer' }} onClick={() => onSec(u)}>
-                <td style={{ ...s.td, textAlign: 'left', fontWeight: 600 }}>{u.ad_soyad}</td>
-                <td style={s.td}>{u.telefon || '-'}</td>
-                <td style={s.td}>{u.paket || '-'}</td>
-                <td style={s.td}>{tarihTR(u.uyelik_baslangic)}</td>
-                <td style={s.td}>{tarihTR(u.uyelik_bitis)}</td>
-                <td style={s.td}><span style={{ ...s.rozet, background: d.renk }}>{d.text}</span></td>
-                <td style={s.td}>{son ? tarihTR(son.olcum_tarihi) : '-'}</td>
+              <Fragment key={u.id}>
+              <tr style={{ cursor: 'pointer' }} onClick={() => onSec(u)}>
+                <td style={{ ...hucre, textAlign: 'left', fontWeight: 600 }}>{u.ad_soyad}</td>
+                <td style={hucre}>{u.telefon || '-'}</td>
+                <td style={hucre}>{u.paket || '-'}</td>
+                <td style={hucre}>{tarihTR(u.uyelik_baslangic)}</td>
+                <td style={hucre}>{tarihTR(u.uyelik_bitis)}</td>
+                <td style={hucre}><span style={{ ...s.rozet, background: d.renk }}>{d.text}</span></td>
+                <td style={hucre}>{son ? tarihTR(son.olcum_tarihi) : '-'}</td>
               </tr>
+              {u.notlar && (
+                <tr style={{ cursor: 'pointer' }} onClick={() => onSec(u)}>
+                  <td colSpan={7} style={s.notHucre}>
+                    <span style={s.notEtiket}>Not:</span> {u.notlar}
+                  </td>
+                </tr>
+              )}
+              </Fragment>
             )
           })}
         </tbody>
