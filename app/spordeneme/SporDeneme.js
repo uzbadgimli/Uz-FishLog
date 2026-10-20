@@ -636,16 +636,18 @@ function UyeDetay({ uye, olcumler, onGeri, onDuzenle, onSil, onOlcumEkle, onOlcu
           {!salt && <button style={s.ikincilBtn} onClick={() => onDuzenle(uye)}>Düzenle</button>}
           {!salt && <button style={{ ...s.ikincilBtn, color: '#e58a8a' }} onClick={() => onSil(uye)}>Sil</button>}
         </div>
-        <div style={s.bilgiIzgara}>
+        <div style={s.bilgiUst}>
           <Bilgi e="Telefon" d={uye.telefon} />
           <Bilgi e="E-posta" d={uye.email} />
+          <Bilgi e="Üyelik" d={`${tarihTR(uye.uyelik_baslangic)} → ${tarihTR(uye.uyelik_bitis)}`} />
+        </div>
+        <div style={s.bilgiAlt}>
           <Bilgi e="Yaş" d={yas(uye.dogum_tarihi)} />
           <Bilgi e="Cinsiyet" d={uye.cinsiyet} />
           <Bilgi e="Boy" d={uye.boy_cm && `${uye.boy_cm} cm`} />
           <Bilgi e="VKİ (son ölçüm)" d={vki} />
           <Bilgi e="Paket" d={uye.paket} />
           <Bilgi e="Hedef" d={uye.hedef} />
-          <Bilgi e="Üyelik" d={`${tarihTR(uye.uyelik_baslangic)} → ${tarihTR(uye.uyelik_bitis)}`} />
         </div>
         {!salt && uye.notlar && <p style={{ margin: '8px 0 0' }}><b>Not:</b> {uye.notlar}</p>}
       </div>
@@ -682,7 +684,7 @@ function Bilgi({ e, d }) {
   return (
     <div>
       <div style={s.soluk}>{e}</div>
-      <div>{d || d === 0 ? d : '-'}</div>
+      <div style={{ overflowWrap: 'anywhere' }}>{d || d === 0 ? d : '-'}</div>
     </div>
   )
 }
@@ -817,7 +819,8 @@ const s = {
   bos: { background: '#fff', padding: 24, borderRadius: 16, textAlign: 'center', color: '#7a8499' },
   rozet: { color: '#fff', padding: '2px 8px', borderRadius: 999, fontSize: 12, fontWeight: 600 },
   detayKutu: { background: '#fff', borderRadius: 16, padding: 16, marginTop: 10, boxShadow: '0 4px 14px rgba(111,151,212,.12)' },
-  bilgiIzgara: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginTop: 14 },
+  bilgiUst: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginTop: 14, paddingBottom: 12, borderBottom: '1px solid #f0f4fa' },
+  bilgiAlt: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 12, marginTop: 12 },
   degisimIzgara: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 8, marginTop: 10 },
   degisimKart: { background: '#f4f7fd', borderRadius: 12, padding: 8, textAlign: 'center' },
   girisKutu: { background: 'rgba(255,255,255,.92)', padding: 26, borderRadius: 22, display: 'flex', flexDirection: 'column', gap: 10, boxShadow: '0 12px 40px rgba(80,120,190,.18)' },
