@@ -107,6 +107,7 @@ export default function SporDeneme() {
   const [olcumForm, setOlcumForm] = useState(null)
   const [demo, setDemo] = useState(false)
   const [benim, setBenim] = useState({ uyeler: [], olcumler: [] }) // üye olarak giriş yapanın kendi kayıtları
+  const [yonetici, setYonetici] = useState(null) // null = henüz bilinmiyor
 
   // uyeGozu: salon yerine ilk örnek üyenin kendi ekranı gösterilir
   const demoBaslat = (uyeGozu = false) => {
@@ -138,6 +139,9 @@ export default function SporDeneme() {
   const yukle = useCallback(async () => {
     setYukleniyor(true)
     setHata('')
+    // Yönetici listesi Supabase'de (spor_yoneticiler); fonksiyon yoksa SQL henüz çalıştırılmamıştır
+    const y = await supabase.rpc('spor_yonetici_mi')
+    const yoneticiMi = y.error ? true : y.data === true
     const [u, o] = await Promise.all([
       supabase.from('spor_uyeler').select('*').order('ad_soyad'),
       supabase.from('spor_olcumler').select('*').order('olcum_tarihi', { ascending: false }),
@@ -147,18 +151,25 @@ export default function SporDeneme() {
       if (err.code === '42P01' || err.code === 'PGRST205') setTabloYok(true)
       else setHata(err.message)
     } else {
-      // Sorgu hem sahibi olduğu kayıtları hem e-postası eşleşen üye kaydını döndürür; ayır
+      // Yönetici tüm kayıtları görür; diğerlerine veritabanı yalnız kendi üye kaydını döndürür
       setTabloYok(false)
-      const sahip = (x) => x.sahip_id === user?.id
-      setUyeler(u.data.filter(sahip))
-      setOlcumler(o.data.filter(sahip))
-      setBenim({ uyeler: u.data.filter((x) => !sahip(x)), olcumler: o.data.filter((x) => !sahip(x)) })
+      if (yoneticiMi) {
+        setUyeler(u.data)
+        setOlcumler(o.data)
+        setBenim({ uyeler: [], olcumler: [] })
+      } else {
+        setUyeler([])
+        setOlcumler([])
+        setBenim({ uyeler: u.data, olcumler: o.data })
+      }
     }
+    setYonetici(yoneticiMi)
     setYukleniyor(false)
-  }, [user])
+  }, [])
 
   useEffect(() => {
     if (user && !demo) yukle()
+    if (!user) setYonetici(null)
   }, [user, demo, yukle])
 
   const uyeAdi = useMemo(() => Object.fromEntries(uyeler.map((u) => [u.id, u.ad_soyad])), [uyeler])
@@ -239,17 +250,31 @@ export default function SporDeneme() {
   if (!demo && authLoading) return <GirisKabuk><p style={{ ...s.soluk, textAlign: 'center' }}>Yükleniyor…</p></GirisKabuk>
   if (!demo && !user) return <GirisKabuk><GirisFormu signIn={signIn} onDemo={demoBaslat} /></GirisKabuk>
 
-  // Kendi salonu olmayan ama bir salonda üye kaydı bulunan kişi: yalnız kendi bilgileri, salt okunur
-  if (!uyeler.length && benim.uyeler.length) {
-    return (
-      <Kabuk
-        sag={
-          <div style={s.kullanici}>
-            <span style={s.soluk}>{demo ? 'Demo — üye gözüyle' : user.email}</span>
-            <button style={s.linkBtn} onClick={demo ? demoBitir : signOut}>Çıkış</button>
+  const cikisAlani = (
+    <div style={s.kullanici}>
+      <span style={s.soluk}>{demo ? 'Demo — üye gözüyle' : user.email}</span>
+      <button style={s.linkBtn} onClick={demo ? demoBitir : signOut}>Çıkış</button>
+    </div>
+  )
+
+  if (!demo && yonetici === null) return <Kabuk sag={cikisAlani}><p style={s.soluk}>Yükleniyor…</p></Kabuk>
+
+  // Yönetici değilse: yalnız kendi üye kaydı (salt okunur) ya da kayıt bulunamadı
+  if (demo ? !uyeler.length && benim.uyeler.length : !yonetici) {
+    if (!benim.uyeler.length) {
+      return (
+        <Kabuk sag={cikisAlani}>
+          <div style={s.bos}>
+            <Esneme style={{ width: 160 }} />
+            <h3 style={{ margin: '8px 0 4px' }}>Üyelik kaydı bulunamadı</h3>
+            <p style={{ margin: 0 }}><b>{user.email}</b> adresine kayıtlı bir üyelik yok. Salona kayıt olurken verdiğiniz e-posta ile giriş yapın ya da salondan e-postanızı kontrol etmelerini isteyin.</p>
           </div>
-        }
-      >
+        </Kabuk>
+      )
+    }
+
+    return (
+      <Kabuk sag={cikisAlani}>
         {benim.uyeler.map((u) => (
           <UyeDetay key={u.id} uye={u} olcumler={benim.olcumler.filter((o) => o.uye_id === u.id)} salt />
         ))}
@@ -636,17 +661,19 @@ function UyeDetay({ uye, olcumler, onGeri, onDuzenle, onSil, onOlcumEkle, onOlcu
           {!salt && <button style={s.ikincilBtn} onClick={() => onDuzenle(uye)}>Düzenle</button>}
           {!salt && <button style={{ ...s.ikincilBtn, color: '#e58a8a' }} onClick={() => onSil(uye)}>Sil</button>}
         </div>
+        <div style={s.bolumBaslik}>İletişim ve üyelik</div>
         <div style={s.bilgiUst}>
           <Bilgi e="Telefon" d={uye.telefon} />
           <Bilgi e="E-posta" d={uye.email} />
+          <Bilgi e="Paket" d={uye.paket} />
           <Bilgi e="Üyelik" d={`${tarihTR(uye.uyelik_baslangic)} → ${tarihTR(uye.uyelik_bitis)}`} />
         </div>
+        <div style={s.bolumBaslik}>Beden bilgileri</div>
         <div style={s.bilgiAlt}>
           <Bilgi e="Yaş" d={yas(uye.dogum_tarihi)} />
           <Bilgi e="Cinsiyet" d={uye.cinsiyet} />
           <Bilgi e="Boy" d={uye.boy_cm && `${uye.boy_cm} cm`} />
           <Bilgi e="VKİ (son ölçüm)" d={vki} />
-          <Bilgi e="Paket" d={uye.paket} />
           <Bilgi e="Hedef" d={uye.hedef} />
         </div>
         {!salt && uye.notlar && <p style={{ margin: '8px 0 0' }}><b>Not:</b> {uye.notlar}</p>}
@@ -682,9 +709,9 @@ function UyeDetay({ uye, olcumler, onGeri, onDuzenle, onSil, onOlcumEkle, onOlcu
 
 function Bilgi({ e, d }) {
   return (
-    <div>
-      <div style={s.soluk}>{e}</div>
-      <div style={{ overflowWrap: 'anywhere' }}>{d || d === 0 ? d : '-'}</div>
+    <div style={s.bilgiKutu}>
+      <div style={{ ...s.soluk, fontSize: 12 }}>{e}</div>
+      <div style={{ overflowWrap: 'anywhere', fontWeight: 600, marginTop: 2 }}>{d || d === 0 ? d : '-'}</div>
     </div>
   )
 }
@@ -819,8 +846,10 @@ const s = {
   bos: { background: '#fff', padding: 24, borderRadius: 16, textAlign: 'center', color: '#7a8499' },
   rozet: { color: '#fff', padding: '2px 8px', borderRadius: 999, fontSize: 12, fontWeight: 600 },
   detayKutu: { background: '#fff', borderRadius: 16, padding: 16, marginTop: 10, boxShadow: '0 4px 14px rgba(111,151,212,.12)' },
-  bilgiUst: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginTop: 14, paddingBottom: 12, borderBottom: '1px solid #f0f4fa' },
-  bilgiAlt: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 12, marginTop: 12 },
+  bolumBaslik: { fontSize: 12, fontWeight: 700, color: '#8a7cc4', textTransform: 'uppercase', letterSpacing: 0.6, margin: '16px 0 8px' },
+  bilgiUst: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8 },
+  bilgiAlt: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8 },
+  bilgiKutu: { background: '#f4f7fd', borderRadius: 12, padding: '10px 12px' },
   degisimIzgara: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 8, marginTop: 10 },
   degisimKart: { background: '#f4f7fd', borderRadius: 12, padding: 8, textAlign: 'center' },
   girisKutu: { background: 'rgba(255,255,255,.92)', padding: 26, borderRadius: 22, display: 'flex', flexDirection: 'column', gap: 10, boxShadow: '0 12px 40px rgba(80,120,190,.18)' },
