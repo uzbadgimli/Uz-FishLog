@@ -1,6 +1,6 @@
 1:"$Sreact.fragment"
-2:I[985,["958","static/chunks/958-f312eed6ba0aef21.js","621","static/chunks/app/spordeneme/page-2e2b17b979067598.js"],"default"]
+2:I[985,["958","static/chunks/958-f312eed6ba0aef21.js","621","static/chunks/app/spordeneme/page-e87482a0ec26d763.js"],"default"]
 3:I[484,[],"OutletBoundary"]
 4:"$Sreact.suspense"
-0:{"buildId":"aJcsA_c962vvDW--SK4rn","rsc":["$","$1","c",{"children":[["$","$L2",null,{}],null,["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
+0:{"buildId":"OJgUMS0erC-IZ9Sex2bn1","rsc":["$","$1","c",{"children":[["$","$L2",null,{}],null,["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
 5:null
